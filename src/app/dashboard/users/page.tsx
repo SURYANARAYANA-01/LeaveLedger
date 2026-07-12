@@ -7,13 +7,26 @@ import UserDirectory from '@/components/users/user-directory';
 export default async function UsersPage() {
   const session = await auth();
 
-  // Route protection - admin only
-  if (!session?.user || session.user.role !== 'ADMIN') {
+  // Route protection - admin (full, minus other HR), manager (employees only), CEO (everyone)
+  const role = session?.user?.role;
+  if (!session?.user || (role !== 'ADMIN' && role !== 'MANAGER' && role !== 'CEO')) {
     redirect('/dashboard');
   }
 
+  const currentRole = role as 'ADMIN' | 'MANAGER' | 'CEO';
+
+  // Role-based visibility: managers see employees only, HR sees managers +
+  // employees (not other HR accounts), CEO sees everyone.
+  const visibleRoleFilter =
+    currentRole === 'MANAGER'
+      ? { role: 'EMPLOYEE' as const }
+      : currentRole === 'ADMIN'
+      ? { role: { in: ['MANAGER', 'EMPLOYEE'] as const } }
+      : {}; // CEO — no filter, sees everyone
+
   // Fetch users with their department and manager relations
   const users = await prisma.user.findMany({
+    where: visibleRoleFilter,
     include: {
       department: {
         select: { id: true, name: true },
@@ -54,6 +67,7 @@ export default async function UsersPage() {
         users={JSON.parse(JSON.stringify(users))}
         departments={departments}
         managers={managers}
+        currentRole={currentRole}
       />
     </div>
   );

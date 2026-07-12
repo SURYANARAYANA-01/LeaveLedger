@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
 import {
   Users,
@@ -13,6 +13,8 @@ import {
 } from 'lucide-react';
 
 interface AdminDashboardProps {
+  role: 'ADMIN' | 'CEO';
+  userName: string;
   stats: {
     totalUsers: number;
     totalDepartments: number;
@@ -23,18 +25,77 @@ interface AdminDashboardProps {
   upcomingHolidays: { id: string; name: string; date: string; isOptional: boolean; description: string | null }[];
 }
 
-export default function AdminDashboard({ stats, upcomingHolidays }: AdminDashboardProps) {
-  const maxCount = Math.max(...stats.leaveTypeDistribution.map((d) => d.count), 1);
+export default function AdminDashboard({ role, userName, stats, upcomingHolidays }: AdminDashboardProps) {
+  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
+  const [greeting, setGreeting] = useState('Welcome back');
+  const firstName = userName.split(' ')[0];
+
+  React.useEffect(() => {
+    const hour = new Date().getHours();
+    if (hour < 12) setGreeting('Good morning');
+    else if (hour < 17) setGreeting('Good afternoon');
+    else setGreeting('Good evening');
+  }, []);
+
+  const CX = 130;
+  const CY = 130;
+  const R = 90;
+  const STROKE = 34;
+  const CIRC = 2 * Math.PI * R;
+
+  const totalRequests = stats.leaveTypeDistribution.reduce((sum, d) => sum + d.count, 0);
+
+  const segments = useMemo(() => {
+    let cumulativeDeg = 0;
+    return stats.leaveTypeDistribution.map((dist) => {
+      const pct = totalRequests > 0 ? dist.count / totalRequests : 0;
+      const sweepDeg = pct * 360;
+      const startDeg = cumulativeDeg;
+      cumulativeDeg += sweepDeg;
+      const midDeg = startDeg + sweepDeg / 2 - 90;
+      const rad = (midDeg * Math.PI) / 180;
+
+      const onRingX = CX + R * Math.cos(rad);
+      const onRingY = CY + R * Math.sin(rad);
+      const outX = CX + (R + 26) * Math.cos(rad);
+      const outY = CY + (R + 26) * Math.sin(rad);
+      const isRight = Math.cos(rad) >= 0;
+      const bendX = isRight ? Math.max(outX, CX + R + 40) : Math.min(outX, CX - R - 40);
+      const tickX = isRight ? bendX + 26 : bendX - 26;
+
+      const segLen =
+        Math.hypot(outX - onRingX, outY - onRingY) +
+        Math.hypot(bendX - outX, outY - outY) +
+        Math.hypot(tickX - bendX, 0);
+
+      return {
+        ...dist,
+        pct,
+        startDeg,
+        sweepDeg,
+        onRingX,
+        onRingY,
+        outX,
+        outY,
+        bendX,
+        tickX,
+        isRight,
+        segLen,
+      };
+    });
+  }, [stats.leaveTypeDistribution, totalRequests]);
 
   return (
     <div className="space-y-8 animate-fade-in">
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-gradient-to-r from-indigo-900/10 via-violet-900/5 to-slate-900/0 border border-indigo-500/10 p-6 rounded-2xl">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-800 dark:text-slate-100 flex items-center gap-2">
-            HR Administration <ShieldCheck className="w-5 h-5 text-indigo-500" />
+            {greeting}, {firstName} <ShieldCheck className="w-5 h-5 text-indigo-500" />
           </h1>
           <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
-            Global leave metrics, department analytics, user directories, and system settings.
+            {role === 'CEO'
+              ? 'Executive overview of company-wide leave metrics, headcount, and department analytics.'
+              : 'Global leave metrics, department analytics, user directories, and system settings.'}
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -119,37 +180,98 @@ export default function AdminDashboard({ stats, upcomingHolidays }: AdminDashboa
             </Link>
           </div>
 
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-850 p-6 rounded-2xl shadow-sm space-y-5">
-            {stats.leaveTypeDistribution.length === 0 ? (
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-850 p-6 rounded-2xl shadow-sm">
+            {stats.leaveTypeDistribution.length === 0 || totalRequests === 0 ? (
               <div className="py-6 text-center text-xs text-slate-400">
                 No leave request history found.
               </div>
             ) : (
-              stats.leaveTypeDistribution.map((dist, idx) => {
-                const percentage = (dist.count / maxCount) * 100;
-                return (
-                  <div key={idx} className="space-y-2">
-                    <div className="flex items-center justify-between text-sm font-semibold">
-                      <span className="text-slate-700 dark:text-slate-350 flex items-center space-x-2">
-                        <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: dist.color }} />
-                        <span>{dist.name}</span>
-                      </span>
-                      <span className="text-slate-500 dark:text-slate-400">
-                        {dist.count} {dist.count === 1 ? 'request' : 'requests'}
-                      </span>
+              <>
+                <svg viewBox="0 0 380 260" className="w-full h-auto" role="img" aria-label="Donut chart of leave requests by type">
+                  <title>Leave request distribution</title>
+                  <circle cx={CX} cy={CY} r={R} fill="none" stroke="currentColor" className="text-slate-100 dark:text-slate-800" strokeWidth={STROKE} />
+                  {segments.map((seg, idx) => (
+                    <circle
+                      key={`arc-${idx}`}
+                      cx={CX}
+                      cy={CY}
+                      r={R}
+                      fill="none"
+                      stroke={seg.color}
+                      strokeWidth={hoveredIdx === idx ? STROKE + 4 : STROKE}
+                      strokeDasharray={`${(seg.pct * CIRC).toFixed(2)} ${CIRC.toFixed(2)}`}
+                      strokeDashoffset={(-((seg.startDeg / 360) * CIRC)).toFixed(2)}
+                      transform={`rotate(-90 ${CX} ${CY})`}
+                      style={{ transition: 'stroke-width 200ms ease', cursor: seg.count > 0 ? 'pointer' : 'default', opacity: seg.count === 0 ? 0.35 : 1 }}
+                      onMouseEnter={() => seg.count > 0 && setHoveredIdx(idx)}
+                      onMouseLeave={() => setHoveredIdx(null)}
+                    />
+                  ))}
+
+                  <text x={CX} y={CY - 6} textAnchor="middle" className="fill-slate-800 dark:fill-slate-100" style={{ fontSize: 26, fontWeight: 700 }}>
+                    {totalRequests}
+                  </text>
+                  <text x={CX} y={CY + 14} textAnchor="middle" className="fill-slate-400" style={{ fontSize: 11 }}>
+                    total requests
+                  </text>
+
+                  {segments.map((seg, idx) => {
+                    const isHovered = hoveredIdx === idx;
+                    return (
+                      <g key={`leader-${idx}`} style={{ pointerEvents: 'none' }}>
+                        <polyline
+                          points={`${seg.onRingX},${seg.onRingY} ${seg.outX},${seg.outY} ${seg.bendX},${seg.outY} ${seg.tickX},${seg.outY}`}
+                          fill="none"
+                          stroke={seg.color}
+                          strokeWidth={1.5}
+                          strokeDasharray={seg.segLen}
+                          strokeDashoffset={isHovered ? 0 : seg.segLen}
+                          style={{ transition: 'stroke-dashoffset 350ms ease' }}
+                        />
+                        <circle
+                          cx={seg.onRingX}
+                          cy={seg.onRingY}
+                          r={3}
+                          fill={seg.color}
+                          style={{ opacity: isHovered ? 1 : 0, transition: 'opacity 150ms ease' }}
+                        />
+                        <text
+                          x={seg.tickX}
+                          y={seg.outY - 8}
+                          textAnchor={seg.isRight ? 'start' : 'end'}
+                          className="fill-slate-800 dark:fill-slate-100"
+                          style={{ fontSize: 12, fontWeight: 600, opacity: isHovered ? 1 : 0, transition: 'opacity 200ms ease 150ms' }}
+                        >
+                          {seg.name}
+                        </text>
+                        <text
+                          x={seg.tickX}
+                          y={seg.outY + 14}
+                          textAnchor={seg.isRight ? 'start' : 'end'}
+                          className="fill-slate-500 dark:fill-slate-400"
+                          style={{ fontSize: 11, opacity: isHovered ? 1 : 0, transition: 'opacity 200ms ease 150ms' }}
+                        >
+                          {seg.count} {seg.count === 1 ? 'request' : 'requests'}
+                        </text>
+                      </g>
+                    );
+                  })}
+                </svg>
+
+                <div className="flex flex-wrap gap-4 justify-center mt-2">
+                  {segments.map((seg, idx) => (
+                    <div
+                      key={`legend-${idx}`}
+                      className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400 cursor-pointer"
+                      onMouseEnter={() => seg.count > 0 && setHoveredIdx(idx)}
+                      onMouseLeave={() => setHoveredIdx(null)}
+                    >
+                      <span className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: seg.color }} />
+                      <span>{seg.name}</span>
                     </div>
-                    <div className="w-full h-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                      <div
-                        className="h-full rounded-full transition-all duration-500"
-                        style={{
-                          width: `${percentage}%`,
-                          backgroundColor: dist.color,
-                        }}
-                      />
-                    </div>
-                  </div>
-                );
-              })
+                  ))}
+                </div>
+              </>
             )}
           </div>
         </div>

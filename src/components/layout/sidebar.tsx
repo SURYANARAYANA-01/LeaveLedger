@@ -39,6 +39,12 @@ export default function Sidebar({ role, userName }: SidebarProps) {
         roles: ['EMPLOYEE', 'MANAGER', 'ADMIN', 'CEO'],
       },
       {
+        label: 'My Leave',
+        href: '/dashboard/my-leave',
+        icon: User,
+        roles: ['MANAGER', 'ADMIN'],
+      },
+      {
         label: 'Apply Leave',
         href: '/dashboard/leave/apply',
         icon: ClipboardList,
@@ -78,7 +84,7 @@ export default function Sidebar({ role, userName }: SidebarProps) {
         label: 'User Directory',
         href: '/dashboard/users',
         icon: Users,
-        roles: ['ADMIN'],
+        roles: ['MANAGER', 'ADMIN', 'CEO'],
       },
       {
         label: 'Reports & Export',

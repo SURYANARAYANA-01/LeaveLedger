@@ -7,7 +7,8 @@ import bcrypt from 'bcryptjs';
 export async function POST(req: NextRequest) {
   try {
     const session = await auth();
-    if (!session?.user || session.user.role !== 'ADMIN') {
+    const creatorRole = session?.user?.role;
+    if (!session?.user || (creatorRole !== 'ADMIN' && creatorRole !== 'MANAGER' && creatorRole !== 'CEO')) {
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     }
 
@@ -18,7 +19,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, message: 'Invalid data', errors: parsed.error.format() }, { status: 400 });
     }
 
-    const { email, name, password, role, departmentId, managerId, phone } = parsed.data;
+    const { email, name, password, role: requestedRole, departmentId, managerId, phone } = parsed.data;
+
+    // Never trust the payload's role — scope what each creator role may assign:
+    // Manager -> Employee only; HR (Admin) -> Manager or Employee (not HR);
+    // CEO -> anything, including HR.
+    let role = requestedRole;
+    if (creatorRole === 'MANAGER') {
+      role = 'EMPLOYEE';
+    } else if (creatorRole === 'ADMIN' && requestedRole === 'ADMIN') {
+      return NextResponse.json({ success: false, message: 'HR cannot create other HR accounts' }, { status: 403 });
+    }
 
     // Check if email already exists
     const existing = await prisma.user.findUnique({
@@ -72,7 +83,8 @@ export async function POST(req: NextRequest) {
 export async function PUT(req: NextRequest) {
   try {
     const session = await auth();
-    if (!session?.user || session.user.role !== 'ADMIN') {
+    const editorRole = session?.user?.role;
+    if (!session?.user || (editorRole !== 'ADMIN' && editorRole !== 'MANAGER' && editorRole !== 'CEO')) {
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     }
 
@@ -83,7 +95,7 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ success: false, message: 'Invalid data', errors: parsed.error.format() }, { status: 400 });
     }
 
-    const { id, name, email, role, departmentId, managerId, isActive, phone } = parsed.data;
+    const { id, name, email, role: requestedRole, departmentId, managerId, isActive, phone } = parsed.data;
 
     // Check if user exists
     const existing = await prisma.user.findUnique({
@@ -92,6 +104,25 @@ export async function PUT(req: NextRequest) {
 
     if (!existing) {
       return NextResponse.json({ success: false, message: 'User not found' }, { status: 404 });
+    }
+
+    // Scope who each editor role may touch, and what role they may assign:
+    // Manager -> Employees only, can't change role away from Employee.
+    // HR (Admin) -> Managers and Employees (not other HR), can't promote to HR.
+    // CEO -> anyone, any role.
+    let role = requestedRole;
+    if (editorRole === 'MANAGER') {
+      if (existing.role !== 'EMPLOYEE') {
+        return NextResponse.json({ success: false, message: 'Managers can only edit employees' }, { status: 403 });
+      }
+      role = 'EMPLOYEE';
+    } else if (editorRole === 'ADMIN') {
+      if (existing.role === 'ADMIN') {
+        return NextResponse.json({ success: false, message: 'HR cannot edit other HR accounts' }, { status: 403 });
+      }
+      if (requestedRole === 'ADMIN') {
+        return NextResponse.json({ success: false, message: 'HR cannot promote users to HR' }, { status: 403 });
+      }
     }
 
     // Check if new email conflicts with another user

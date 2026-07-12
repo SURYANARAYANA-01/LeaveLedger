@@ -51,9 +51,22 @@ interface UserDirectoryProps {
   users: UserType[];
   departments: Department[];
   managers: { id: string; name: string }[];
+  currentRole: 'ADMIN' | 'MANAGER' | 'CEO';
 }
 
-export default function UserDirectory({ users: initialUsers, departments, managers }: UserDirectoryProps) {
+export default function UserDirectory({ users: initialUsers, departments, managers, currentRole }: UserDirectoryProps) {
+  const isManager = currentRole === 'MANAGER';
+  const isCeo = currentRole === 'CEO';
+  // Add/Edit are allowed for everyone within what they can see; the Add-form
+  // role choices and Edit button are scoped further below per user.
+  const canAdd = true;
+
+  const canEditUser = (user: UserType) => {
+    if (isCeo) return true;
+    if (currentRole === 'ADMIN') return user.role !== 'ADMIN'; // HR: managers + employees, not other HR
+    if (isManager) return user.role === 'EMPLOYEE'; // Manager: employees only
+    return false;
+  };
   const router = useRouter();
   const [users, setUsers] = useState<UserType[]>(initialUsers);
   const [searchTerm, setSearchTerm] = useState('');
@@ -206,8 +219,8 @@ export default function UserDirectory({ users: initialUsers, departments, manage
             >
               <option value="ALL">All Roles</option>
               <option value="EMPLOYEE">Employee</option>
-              <option value="MANAGER">Manager</option>
-              <option value="ADMIN">Admin</option>
+              {!isManager && <option value="MANAGER">Manager</option>}
+              {isCeo && <option value="ADMIN">HR Admin</option>}
             </select>
           </div>
 
@@ -227,13 +240,15 @@ export default function UserDirectory({ users: initialUsers, departments, manage
             </select>
           </div>
 
-          <button
-            onClick={() => setIsAddOpen(true)}
-            className="xl:ml-2 py-2.5 px-4 bg-indigo-600 hover:bg-indigo-550 text-white text-xs font-bold uppercase tracking-wider rounded-xl shadow-md cursor-pointer transition-all flex items-center gap-1.5"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Add Employee</span>
-          </button>
+          {canAdd && (
+            <button
+              onClick={() => setIsAddOpen(true)}
+              className="xl:ml-2 py-2.5 px-4 bg-indigo-600 hover:bg-indigo-550 text-white text-xs font-bold uppercase tracking-wider rounded-xl shadow-md cursor-pointer transition-all flex items-center gap-1.5"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Add Employee</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -282,12 +297,14 @@ export default function UserDirectory({ users: initialUsers, departments, manage
                     {user.isActive ? <CheckCircle className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
                   </span>
 
-                  <button
-                    onClick={() => openEditModal(user)}
-                    className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-450 hover:text-indigo-600 rounded-lg transition-colors cursor-pointer"
-                  >
-                    <Edit2 className="w-3.5 h-3.5" />
-                  </button>
+                  {canEditUser(user) && (
+                    <button
+                      onClick={() => openEditModal(user)}
+                      className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-450 hover:text-indigo-600 rounded-lg transition-colors cursor-pointer"
+                    >
+                      <Edit2 className="w-3.5 h-3.5" />
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -374,11 +391,12 @@ export default function UserDirectory({ users: initialUsers, departments, manage
                   <label className="text-[10px] font-bold uppercase tracking-wider text-slate-455">Role</label>
                   <select
                     {...registerAdd('role')}
-                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    disabled={isManager}
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-60 disabled:cursor-not-allowed"
                   >
                     <option value="EMPLOYEE">Employee</option>
-                    <option value="MANAGER">Manager</option>
-                    <option value="ADMIN">HR Admin</option>
+                    {!isManager && <option value="MANAGER">Manager</option>}
+                    {isCeo && <option value="ADMIN">HR Admin</option>}
                   </select>
                 </div>
 
@@ -493,11 +511,12 @@ export default function UserDirectory({ users: initialUsers, departments, manage
                   <label className="text-[10px] font-bold uppercase tracking-wider text-slate-455">Role</label>
                   <select
                     {...registerEdit('role')}
-                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    disabled={isManager}
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-60 disabled:cursor-not-allowed"
                   >
                     <option value="EMPLOYEE">Employee</option>
-                    <option value="MANAGER">Manager</option>
-                    <option value="ADMIN">HR Admin</option>
+                    {!isManager && <option value="MANAGER">Manager</option>}
+                    {isCeo && <option value="ADMIN">HR Admin</option>}
                   </select>
                 </div>
 

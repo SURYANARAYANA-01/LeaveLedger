@@ -55,6 +55,8 @@ export default async function DashboardPage() {
 
     return (
       <AdminDashboard
+        role={role}
+        userName={session.user.name || 'there'}
         stats={{
           totalUsers,
           totalDepartments,
@@ -104,6 +106,7 @@ export default async function DashboardPage() {
 
     return (
       <ManagerDashboard
+        userName={session.user.name || 'there'}
         stats={{
           pendingApprovals: pendingApprovalsCount,
           teamSize: subordinatesCount,
