@@ -34,9 +34,20 @@ export default async function DashboardPage() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
+    // Match the exact same review scope as the Approvals Queue page, so the
+    // "Active Leave Requests" count never includes the viewer's own pending
+    // request or requests outside what they're actually responsible for.
+    const reviewableRoles = role === 'ADMIN' ? ['MANAGER', 'EMPLOYEE'] : ['MANAGER', 'ADMIN'];
+
     const [activeEmployeesCount, activeRequestsCount, onLeaveTodayCount, leaveTypes] = await Promise.all([
       prisma.user.count({ where: { isActive: true, role: 'EMPLOYEE' } }),
-      prisma.leaveRequest.count({ where: { status: 'PENDING' } }),
+      prisma.leaveRequest.count({
+        where: {
+          status: 'PENDING',
+          userId: { not: userId },
+          user: { role: { in: reviewableRoles } },
+        },
+      }),
       prisma.leaveRequest.count({
         where: {
           status: 'APPROVED',

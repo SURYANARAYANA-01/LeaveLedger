@@ -4,8 +4,8 @@ import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
 import {
   Users,
-  CalendarClock,
   Clock,
+  CalendarCheck2,
   ArrowRight,
   ShieldCheck
 } from 'lucide-react';
@@ -44,7 +44,7 @@ export default function AdminDashboard({ role, userName, stats, upcomingHolidays
   const R = 95;
   const STROKE = 34;
   const CIRC = 2 * Math.PI * R;
-  const LINE_OUT = 16;
+  const LINE_OUT = 9;
 
   const totalRequests = stats.leaveTypeDistribution.reduce((sum, d) => sum + d.count, 0);
 
@@ -125,21 +125,21 @@ export default function AdminDashboard({ role, userName, stats, upcomingHolidays
             link: '/dashboard/users',
           },
           {
-            title: 'Active Leave Requests',
+            title: 'Pending Approvals',
             value: stats.activeLeaveRequests,
             color: 'text-amber-600 dark:text-amber-400',
             bg: 'bg-amber-500/10',
             border: 'border-amber-500/20',
-            icon: CalendarClock,
+            icon: Clock,
             link: '/dashboard/approvals',
           },
           {
-            title: 'In Leave',
+            title: 'On Leave Today',
             value: stats.onLeaveToday,
             color: 'text-emerald-600 dark:text-emerald-400',
             bg: 'bg-emerald-500/10',
             border: 'border-emerald-500/20',
-            icon: Clock,
+            icon: CalendarCheck2,
             link: '/dashboard/calendar',
           },
         ].map((item, idx) => {
@@ -251,7 +251,7 @@ export default function AdminDashboard({ role, userName, stats, upcomingHolidays
                   {/* Floating tooltip, plain HTML so it can never be clipped by an SVG viewBox */}
                   {hovered && (
                     <div
-                      className="absolute pointer-events-none bg-white dark:bg-slate-800 shadow-lg border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1.5 whitespace-nowrap transition-all duration-200"
+                      className="absolute pointer-events-none bg-white dark:bg-slate-800 shadow-lg border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1 whitespace-nowrap transition-all duration-200"
                       style={{
                         left: `${hovered.tooltipXPct}%`,
                         top: `${hovered.tooltipYPct}%`,
@@ -260,9 +260,6 @@ export default function AdminDashboard({ role, userName, stats, upcomingHolidays
                       }}
                     >
                       <div className="text-xs font-bold text-slate-800 dark:text-slate-100">{hovered.name}</div>
-                      <div className="text-[11px] text-slate-500 dark:text-slate-400">
-                        {hovered.count} {hovered.count === 1 ? 'request' : 'requests'}
-                      </div>
                     </div>
                   )}
                 </div>
