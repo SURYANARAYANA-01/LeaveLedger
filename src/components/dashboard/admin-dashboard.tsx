@@ -136,9 +136,9 @@ export default function AdminDashboard({ role, userName, stats, upcomingHolidays
           {
             title: 'On Leave Today',
             value: stats.onLeaveToday,
-            color: 'text-emerald-600 dark:text-emerald-400',
-            bg: 'bg-emerald-500/10',
-            border: 'border-emerald-500/20',
+            color: 'text-rose-600 dark:text-rose-400',
+            bg: 'bg-rose-500/10',
+            border: 'border-rose-500/20',
             icon: CalendarCheck2,
             link: '/dashboard/calendar',
           },
