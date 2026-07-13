@@ -110,6 +110,7 @@ async function main() {
       password: passwordHash,
       role: UserRole.CEO,
       phone: '+15550100300',
+      joiningDate: new Date('2019-01-15'),
     },
   });
 
@@ -122,6 +123,7 @@ async function main() {
       departmentId: hr.id,
       managerId: ceo.id,
       phone: '+15550100200',
+      joiningDate: new Date('2020-03-10'),
     },
   });
 
@@ -140,6 +142,7 @@ async function main() {
       departmentId: engineering.id,
       managerId: hrAdmin.id,
       phone: '+15550100201',
+      joiningDate: new Date('2021-06-01'),
     },
   });
 
@@ -158,6 +161,7 @@ async function main() {
       departmentId: engineering.id,
       managerId: manager.id,
       phone: '+15550100202',
+      joiningDate: new Date('2022-09-19'),
     },
   });
 

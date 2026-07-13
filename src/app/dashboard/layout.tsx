@@ -18,23 +18,23 @@ export default async function DashboardLayout({
   // TypeScript narrowing — session is guaranteed non-null past this point
   const user = session.user;
 
-  // Fetch the user's current avatar directly from the database so that
-  // profile picture changes are reflected immediately without re-logging in.
-  const dbUser = await prisma.user.findUnique({
-    where: { id: user.id },
-    select: { avatar: true },
-  });
-
-  // Fetch recent unread notifications for the user
-  const notifications = await prisma.notification.findMany({
-    where: {
-      userId: user.id,
-    },
-    orderBy: {
-      createdAt: 'desc',
-    },
-    take: 10,
-  });
+  // Fetch avatar and notifications in parallel instead of one after another —
+  // they're independent queries, no reason to serialize them.
+  const [dbUser, notifications] = await Promise.all([
+    prisma.user.findUnique({
+      where: { id: user.id },
+      select: { avatar: true },
+    }),
+    prisma.notification.findMany({
+      where: {
+        userId: user.id,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      take: 10,
+    }),
+  ]);
 
   return (
     <DashboardClientLayout

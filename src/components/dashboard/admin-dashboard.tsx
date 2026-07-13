@@ -4,10 +4,8 @@ import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
 import {
   Users,
-  Building,
   CalendarClock,
-  Settings,
-  Plus,
+  Clock,
   ArrowRight,
   ShieldCheck
 } from 'lucide-react';
@@ -16,11 +14,10 @@ interface AdminDashboardProps {
   role: 'ADMIN' | 'CEO';
   userName: string;
   stats: {
-    totalUsers: number;
-    totalDepartments: number;
+    activeEmployees: number;
     activeLeaveRequests: number;
+    onLeaveToday: number;
     leaveTypeDistribution: { name: string; count: number; color: string }[];
-    departmentLeaveRates: { name: string; rate: number }[];
   };
   upcomingHolidays: { id: string; name: string; date: string; isOptional: boolean; description: string | null }[];
 }
@@ -37,14 +34,17 @@ export default function AdminDashboard({ role, userName, stats, upcomingHolidays
     else setGreeting('Good evening');
   }, []);
 
-  const CX = 230;
-  const CY = 150;
-  const R = 78;
-  const STROKE = 30;
+  // Compact, self-contained donut: big ring filling a square box, short
+  // radial "pulse" line on hover (inside the SVG), and a floating HTML
+  // tooltip positioned near the hovered segment (avoids any SVG viewBox
+  // clipping/overflow issues since it's normal HTML, clamped in JS).
+  const BOX = 260;
+  const CX = BOX / 2;
+  const CY = BOX / 2;
+  const R = 95;
+  const STROKE = 34;
   const CIRC = 2 * Math.PI * R;
-  const LINE_OUT = 20;
-  const BEND_MARGIN = 32;
-  const TICK_LEN = 20;
+  const LINE_OUT = 16;
 
   const totalRequests = stats.leaveTypeDistribution.reduce((sum, d) => sum + d.count, 0);
 
@@ -62,14 +62,15 @@ export default function AdminDashboard({ role, userName, stats, upcomingHolidays
       const onRingY = CY + R * Math.sin(rad);
       const outX = CX + (R + LINE_OUT) * Math.cos(rad);
       const outY = CY + (R + LINE_OUT) * Math.sin(rad);
-      const isRight = Math.cos(rad) >= 0;
-      const bendX = isRight ? Math.max(outX, CX + R + BEND_MARGIN) : Math.min(outX, CX - R - BEND_MARGIN);
-      const tickX = isRight ? bendX + TICK_LEN : bendX - TICK_LEN;
 
-      const segLen =
-        Math.hypot(outX - onRingX, outY - onRingY) +
-        Math.hypot(bendX - outX, outY - outY) +
-        Math.hypot(tickX - bendX, 0);
+      // Tooltip anchor as a clamped percentage of the box, a bit further
+      // out than the line so it doesn't sit on top of the ring.
+      const tipX = CX + (R + LINE_OUT + 8) * Math.cos(rad);
+      const tipY = CY + (R + LINE_OUT + 8) * Math.sin(rad);
+      const tooltipXPct = Math.min(88, Math.max(12, (tipX / BOX) * 100));
+      const tooltipYPct = Math.min(90, Math.max(10, (tipY / BOX) * 100));
+
+      const segLen = Math.hypot(outX - onRingX, outY - onRingY);
 
       return {
         ...dist,
@@ -80,13 +81,14 @@ export default function AdminDashboard({ role, userName, stats, upcomingHolidays
         onRingY,
         outX,
         outY,
-        bendX,
-        tickX,
-        isRight,
+        tooltipXPct,
+        tooltipYPct,
         segLen,
       };
     });
   }, [stats.leaveTypeDistribution, totalRequests]);
+
+  const hovered = hoveredIdx !== null ? segments[hoveredIdx] : null;
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -101,22 +103,13 @@ export default function AdminDashboard({ role, userName, stats, upcomingHolidays
               : 'Global leave metrics, department analytics, user directories, and system settings.'}
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <Link
-            href="/dashboard/approvals"
-            className="inline-flex items-center justify-center space-x-2 bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-3 rounded-xl font-semibold shadow-lg shadow-indigo-600/25 transition-all duration-200 cursor-pointer self-start lg:self-center"
-          >
-            <span>Open Approvals Queue</span>
-            <ArrowRight className="w-4 h-4" />
-          </Link>
-          <Link
-            href="/dashboard/users"
-            className="inline-flex items-center justify-center space-x-2 bg-indigo-650 hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-500 text-white px-4 py-2.5 rounded-xl font-semibold shadow-sm transition-all cursor-pointer"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Manage Employees</span>
-          </Link>
-        </div>
+        <Link
+          href="/dashboard/approvals"
+          className="inline-flex items-center justify-center space-x-2 bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-3 rounded-xl font-semibold shadow-lg shadow-indigo-600/25 transition-all duration-200 cursor-pointer self-start lg:self-center"
+        >
+          <span>Open Approvals Queue</span>
+          <ArrowRight className="w-4 h-4" />
+        </Link>
       </div>
 
       {/* Stats Cards */}
@@ -124,20 +117,11 @@ export default function AdminDashboard({ role, userName, stats, upcomingHolidays
         {[
           {
             title: 'Active Employees',
-            value: stats.totalUsers,
+            value: stats.activeEmployees,
             color: 'text-indigo-650 dark:text-indigo-400',
             bg: 'bg-indigo-500/10',
             border: 'border-indigo-500/20',
             icon: Users,
-            link: '/dashboard/users',
-          },
-          {
-            title: 'Departments',
-            value: stats.totalDepartments,
-            color: 'text-violet-600 dark:text-violet-400',
-            bg: 'bg-violet-500/10',
-            border: 'border-violet-500/20',
-            icon: Building,
             link: '/dashboard/users',
           },
           {
@@ -148,6 +132,15 @@ export default function AdminDashboard({ role, userName, stats, upcomingHolidays
             border: 'border-amber-500/20',
             icon: CalendarClock,
             link: '/dashboard/approvals',
+          },
+          {
+            title: 'In Leave',
+            value: stats.onLeaveToday,
+            color: 'text-emerald-600 dark:text-emerald-400',
+            bg: 'bg-emerald-500/10',
+            border: 'border-emerald-500/20',
+            icon: Clock,
+            link: '/dashboard/calendar',
           },
         ].map((item, idx) => {
           const Icon = item.icon;
@@ -196,92 +189,106 @@ export default function AdminDashboard({ role, userName, stats, upcomingHolidays
                 No leave request history found.
               </div>
             ) : (
-              <>
-                <svg viewBox="0 0 460 300" className="w-full h-auto" style={{ maxWidth: 460, margin: '0 auto', display: 'block' }} role="img" aria-label="Donut chart of leave requests by type">
-                  <title>Leave request distribution</title>
-                  <circle cx={CX} cy={CY} r={R} fill="none" stroke="currentColor" className="text-slate-100 dark:text-slate-800" strokeWidth={STROKE} />
-                  {segments.map((seg, idx) => (
-                    <circle
-                      key={`arc-${idx}`}
-                      cx={CX}
-                      cy={CY}
-                      r={R}
-                      fill="none"
-                      stroke={seg.color}
-                      strokeWidth={hoveredIdx === idx ? STROKE + 4 : STROKE}
-                      strokeDasharray={`${(seg.pct * CIRC).toFixed(2)} ${CIRC.toFixed(2)}`}
-                      strokeDashoffset={(-((seg.startDeg / 360) * CIRC)).toFixed(2)}
-                      transform={`rotate(-90 ${CX} ${CY})`}
-                      style={{ transition: 'stroke-width 200ms ease', cursor: seg.count > 0 ? 'pointer' : 'default', opacity: seg.count === 0 ? 0.35 : 1 }}
-                      onMouseEnter={() => seg.count > 0 && setHoveredIdx(idx)}
-                      onMouseLeave={() => setHoveredIdx(null)}
-                    />
-                  ))}
+              <div className="flex flex-col md:flex-row items-center gap-8">
+                {/* Donut - left */}
+                <div className="relative flex-shrink-0" style={{ width: BOX, height: BOX }}>
+                  <svg viewBox={`0 0 ${BOX} ${BOX}`} width={BOX} height={BOX} role="img" aria-label="Donut chart of leave requests by type">
+                    <title>Leave request distribution</title>
+                    <circle cx={CX} cy={CY} r={R} fill="none" stroke="currentColor" className="text-slate-100 dark:text-slate-800" strokeWidth={STROKE} />
+                    {segments.map((seg, idx) => (
+                      <circle
+                        key={`arc-${idx}`}
+                        cx={CX}
+                        cy={CY}
+                        r={R}
+                        fill="none"
+                        stroke={seg.color}
+                        strokeWidth={hoveredIdx === idx ? STROKE + 5 : STROKE}
+                        strokeDasharray={`${(seg.pct * CIRC).toFixed(2)} ${CIRC.toFixed(2)}`}
+                        strokeDashoffset={(-((seg.startDeg / 360) * CIRC)).toFixed(2)}
+                        transform={`rotate(-90 ${CX} ${CY})`}
+                        style={{ transition: 'stroke-width 200ms ease', cursor: seg.count > 0 ? 'pointer' : 'default', opacity: seg.count === 0 ? 0.35 : 1 }}
+                        onMouseEnter={() => seg.count > 0 && setHoveredIdx(idx)}
+                        onMouseLeave={() => setHoveredIdx(null)}
+                      />
+                    ))}
 
-                  <text x={CX} y={CY - 6} textAnchor="middle" className="fill-slate-800 dark:fill-slate-100" style={{ fontSize: 26, fontWeight: 700 }}>
-                    {totalRequests}
-                  </text>
-                  <text x={CX} y={CY + 14} textAnchor="middle" className="fill-slate-400" style={{ fontSize: 11 }}>
-                    total requests
-                  </text>
+                    <text x={CX} y={CY - 6} textAnchor="middle" className="fill-slate-800 dark:fill-slate-100" style={{ fontSize: 30, fontWeight: 700 }}>
+                      {totalRequests}
+                    </text>
+                    <text x={CX} y={CY + 16} textAnchor="middle" className="fill-slate-400" style={{ fontSize: 12 }}>
+                      total requests
+                    </text>
 
-                  {segments.map((seg, idx) => {
-                    const isHovered = hoveredIdx === idx;
-                    return (
-                      <g key={`leader-${idx}`} style={{ pointerEvents: 'none' }}>
-                        <polyline
-                          points={`${seg.onRingX},${seg.onRingY} ${seg.outX},${seg.outY} ${seg.bendX},${seg.outY} ${seg.tickX},${seg.outY}`}
-                          fill="none"
-                          stroke={seg.color}
-                          strokeWidth={1.5}
-                          strokeDasharray={seg.segLen}
-                          strokeDashoffset={isHovered ? 0 : seg.segLen}
-                          style={{ transition: 'stroke-dashoffset 350ms ease' }}
-                        />
-                        <circle
-                          cx={seg.onRingX}
-                          cy={seg.onRingY}
-                          r={3}
-                          fill={seg.color}
-                          style={{ opacity: isHovered ? 1 : 0, transition: 'opacity 150ms ease' }}
-                        />
-                        <text
-                          x={seg.tickX}
-                          y={seg.outY - 8}
-                          textAnchor={seg.isRight ? 'start' : 'end'}
-                          className="fill-slate-800 dark:fill-slate-100"
-                          style={{ fontSize: 12, fontWeight: 600, opacity: isHovered ? 1 : 0, transition: 'opacity 200ms ease 150ms' }}
-                        >
-                          {seg.name}
-                        </text>
-                        <text
-                          x={seg.tickX}
-                          y={seg.outY + 14}
-                          textAnchor={seg.isRight ? 'start' : 'end'}
-                          className="fill-slate-500 dark:fill-slate-400"
-                          style={{ fontSize: 11, opacity: isHovered ? 1 : 0, transition: 'opacity 200ms ease 150ms' }}
-                        >
-                          {seg.count} {seg.count === 1 ? 'request' : 'requests'}
-                        </text>
-                      </g>
-                    );
-                  })}
-                </svg>
+                    {/* Short animated pulse line drawing outward on hover */}
+                    {segments.map((seg, idx) => {
+                      const isHovered = hoveredIdx === idx;
+                      return (
+                        <g key={`leader-${idx}`} style={{ pointerEvents: 'none' }}>
+                          <line
+                            x1={seg.onRingX}
+                            y1={seg.onRingY}
+                            x2={seg.outX}
+                            y2={seg.outY}
+                            stroke={seg.color}
+                            strokeWidth={2}
+                            strokeDasharray={seg.segLen}
+                            strokeDashoffset={isHovered ? 0 : seg.segLen}
+                            style={{ transition: 'stroke-dashoffset 300ms ease' }}
+                          />
+                          <circle
+                            cx={seg.outX}
+                            cy={seg.outY}
+                            r={3}
+                            fill={seg.color}
+                            style={{ opacity: isHovered ? 1 : 0, transition: 'opacity 150ms ease 250ms' }}
+                          />
+                        </g>
+                      );
+                    })}
+                  </svg>
 
-                <div className="flex flex-wrap gap-4 justify-center mt-2">
+                  {/* Floating tooltip, plain HTML so it can never be clipped by an SVG viewBox */}
+                  {hovered && (
+                    <div
+                      className="absolute pointer-events-none bg-white dark:bg-slate-800 shadow-lg border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1.5 whitespace-nowrap transition-all duration-200"
+                      style={{
+                        left: `${hovered.tooltipXPct}%`,
+                        top: `${hovered.tooltipYPct}%`,
+                        transform: 'translate(-50%, -50%)',
+                        zIndex: 10,
+                      }}
+                    >
+                      <div className="text-xs font-bold text-slate-800 dark:text-slate-100">{hovered.name}</div>
+                      <div className="text-[11px] text-slate-500 dark:text-slate-400">
+                        {hovered.count} {hovered.count === 1 ? 'request' : 'requests'}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Legend - right */}
+                <div className="flex-1 w-full space-y-1.5">
                   {segments.map((seg, idx) => (
                     <div
                       key={`legend-${idx}`}
-                      className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400 cursor-pointer"
                       onMouseEnter={() => seg.count > 0 && setHoveredIdx(idx)}
                       onMouseLeave={() => setHoveredIdx(null)}
+                      className={`flex items-center justify-between px-3 py-2 rounded-xl cursor-pointer transition-colors ${
+                        hoveredIdx === idx ? 'bg-slate-50 dark:bg-slate-800/60' : ''
+                      }`}
                     >
-                      <span className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: seg.color }} />
-                      <span>{seg.name}</span>
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="w-2.5 h-2.5 rounded-sm flex-shrink-0" style={{ backgroundColor: seg.color }} />
+                        <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 truncate">{seg.name}</span>
+                      </div>
+                      <span className="text-sm font-bold text-slate-500 dark:text-slate-400 flex-shrink-0 ml-3">
+                        {seg.count}
+                      </span>
                     </div>
                   ))}
                 </div>
-              </>
+              </div>
             )}
           </div>
         </div>

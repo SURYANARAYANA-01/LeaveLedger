@@ -46,9 +46,8 @@ export type ManagerDashboardStats = {
 };
 
 export type AdminDashboardStats = {
-  totalUsers: number;
-  totalDepartments: number;
+  activeEmployees: number;
   activeLeaveRequests: number;
+  onLeaveToday: number;
   leaveTypeDistribution: { name: string; count: number; color: string }[];
-  departmentLeaveRates: { name: string; rate: number }[];
 };

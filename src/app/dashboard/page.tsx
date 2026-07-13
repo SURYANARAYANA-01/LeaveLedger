@@ -31,10 +31,19 @@ export default async function DashboardPage() {
 
   if (role === 'CEO' || role === 'ADMIN') {
     // HR Admin / CEO Dashboard queries
-    const [totalUsers, totalDepartments, activeRequestsCount, leaveTypes] = await Promise.all([
-      prisma.user.count({ where: { isActive: true } }),
-      prisma.department.count(),
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const [activeEmployeesCount, activeRequestsCount, onLeaveTodayCount, leaveTypes] = await Promise.all([
+      prisma.user.count({ where: { isActive: true, role: 'EMPLOYEE' } }),
       prisma.leaveRequest.count({ where: { status: 'PENDING' } }),
+      prisma.leaveRequest.count({
+        where: {
+          status: 'APPROVED',
+          startDate: { lte: today },
+          endDate: { gte: today },
+        },
+      }),
       prisma.leaveType.findMany({ where: { isActive: true } }),
     ]);
 
@@ -58,11 +67,10 @@ export default async function DashboardPage() {
         role={role}
         userName={session.user.name || 'there'}
         stats={{
-          totalUsers,
-          totalDepartments,
+          activeEmployees: activeEmployeesCount,
           activeLeaveRequests: activeRequestsCount,
+          onLeaveToday: onLeaveTodayCount,
           leaveTypeDistribution,
-          departmentLeaveRates: [],
         }}
         upcomingHolidays={JSON.parse(JSON.stringify(holidays))}
       />
