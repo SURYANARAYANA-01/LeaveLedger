@@ -3,57 +3,52 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { loginSchema, LoginInput } from '@/lib/validators/user';
-import { toast } from 'sonner';
-import { KeyRound, Mail, Lock, Loader2, Sparkles } from 'lucide-react';
 import Link from 'next/link';
+import { registerSchema, RegisterInput } from '@/lib/validators/user';
+import { toast } from 'sonner';
+import { Building2, User, Mail, Lock, Loader2, Sparkles } from 'lucide-react';
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
   const {
     register,
     handleSubmit,
-    setValue,
     formState: { errors },
-  } = useForm<LoginInput>({
-    resolver: zodResolver(loginSchema),
+  } = useForm<RegisterInput>({
+    resolver: zodResolver(registerSchema),
     defaultValues: {
+      companyName: '',
+      name: '',
       email: '',
       password: '',
     },
   });
 
-  const onSubmit = async (data: LoginInput) => {
+  const onSubmit = async (data: RegisterInput) => {
     setLoading(true);
     try {
-      const result = await signIn('credentials', {
-        email: data.email,
-        password: data.password,
-        redirect: false,
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
       });
+      const result = await res.json();
 
-      if (result?.error) {
-        toast.error('Invalid credentials. Please try again.');
-      } else {
-        toast.success('Logged in successfully!');
-        router.push('/dashboard');
-        router.refresh();
+      if (!res.ok) {
+        toast.error(result.message || 'Registration failed. Please try again.');
+        return;
       }
+
+      toast.success('Company created! You can now log in as CEO.');
+      router.push('/login');
     } catch (error) {
       toast.error('An unexpected error occurred.');
     } finally {
       setLoading(false);
     }
-  };
-
-  const fillCredentials = (email: string) => {
-    setValue('email', email);
-    setValue('password', 'demo1234');
-    toast.success('Credentials filled! Click Login.');
   };
 
   return (
@@ -64,17 +59,53 @@ export default function LoginPage() {
 
       <div className="text-center mb-8">
         <div className="inline-flex items-center justify-center p-3 bg-indigo-500/10 rounded-xl border border-indigo-500/20 mb-4">
-          <KeyRound className="w-8 h-8 text-indigo-400" />
+          <Building2 className="w-8 h-8 text-indigo-400" />
         </div>
         <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-200 via-slate-100 to-indigo-200 bg-clip-text text-transparent">
-          LeaveLedger
+          Set up your company
         </h1>
         <p className="text-slate-400 text-sm mt-2">
-          Enterprise Leave Management System
+          Creates your company workspace and your CEO account. You'll add HR, managers, and employees afterward.
         </p>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+        <div>
+          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
+            Company Name
+          </label>
+          <div className="relative">
+            <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
+            <input
+              type="text"
+              {...register('companyName')}
+              placeholder="Acme Inc."
+              className="w-full pl-10 pr-4 py-3 bg-slate-950/50 border border-slate-800 rounded-lg text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+            />
+          </div>
+          {errors.companyName && (
+            <p className="text-xs text-rose-500 mt-1">{errors.companyName.message}</p>
+          )}
+        </div>
+
+        <div>
+          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
+            Your Full Name
+          </label>
+          <div className="relative">
+            <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
+            <input
+              type="text"
+              {...register('name')}
+              placeholder="Jane Founder"
+              className="w-full pl-10 pr-4 py-3 bg-slate-950/50 border border-slate-800 rounded-lg text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+            />
+          </div>
+          {errors.name && (
+            <p className="text-xs text-rose-500 mt-1">{errors.name.message}</p>
+          )}
+        </div>
+
         <div>
           <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
             Email Address
@@ -84,7 +115,7 @@ export default function LoginPage() {
             <input
               type="email"
               {...register('email')}
-              placeholder="name@company.com"
+              placeholder="you@company.com"
               className="w-full pl-10 pr-4 py-3 bg-slate-950/50 border border-slate-800 rounded-lg text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
             />
           </div>
@@ -119,53 +150,20 @@ export default function LoginPage() {
           {loading ? (
             <>
               <Loader2 className="w-5 h-5 animate-spin" />
-              <span>Logging in...</span>
+              <span>Creating company...</span>
             </>
           ) : (
-            <span>Sign In</span>
+            <span>Create Company & CEO Account</span>
           )}
         </button>
       </form>
 
       <p className="text-center text-sm text-slate-400 mt-6">
-        Don't have an account?{' '}
-        <Link href="/register" className="text-indigo-400 hover:text-indigo-300 font-medium">
-          Register your company
+        Already have an account?{' '}
+        <Link href="/login" className="text-indigo-400 hover:text-indigo-300 font-medium">
+          Sign in
         </Link>
       </p>
-
-      {/* Demo credentials quick fill */}
-      <div className="mt-8 pt-6 border-t border-slate-800/80">
-        <p className="text-center text-xs font-semibold uppercase tracking-wider text-slate-500 mb-3">
-          Quick demo logins
-        </p>
-        <div className="grid grid-cols-4 gap-2">
-          <button
-            onClick={() => fillCredentials('demo@leaveledger.com')}
-            className="px-2 py-2 bg-slate-950/50 border border-slate-800/80 rounded-lg text-[11px] font-medium text-slate-300 hover:bg-indigo-500/10 hover:border-indigo-500/30 transition-all cursor-pointer"
-          >
-            Employee
-          </button>
-          <button
-            onClick={() => fillCredentials('manager@leaveledger.com')}
-            className="px-2 py-2 bg-slate-950/50 border border-slate-800/80 rounded-lg text-[11px] font-medium text-slate-300 hover:bg-indigo-500/10 hover:border-indigo-500/30 transition-all cursor-pointer"
-          >
-            Manager
-          </button>
-          <button
-            onClick={() => fillCredentials('admin@leaveledger.com')}
-            className="px-2 py-2 bg-slate-950/50 border border-slate-800/80 rounded-lg text-[11px] font-medium text-slate-300 hover:bg-indigo-500/10 hover:border-indigo-500/30 transition-all cursor-pointer"
-          >
-            HR
-          </button>
-          <button
-            onClick={() => fillCredentials('ceo@leaveledger.com')}
-            className="px-2 py-2 bg-slate-950/50 border border-slate-800/80 rounded-lg text-[11px] font-medium text-slate-300 hover:bg-indigo-500/10 hover:border-indigo-500/30 transition-all cursor-pointer"
-          >
-            CEO
-          </button>
-        </div>
-      </div>
     </div>
   );
 }

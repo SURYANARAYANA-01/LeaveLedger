@@ -44,7 +44,7 @@ export default function AdminDashboard({ role, userName, stats, upcomingHolidays
   const R = 95;
   const STROKE = 34;
   const CIRC = 2 * Math.PI * R;
-  const LINE_OUT = 22;
+  const LINE_OUT = 30;
 
   const totalRequests = stats.leaveTypeDistribution.reduce((sum, d) => sum + d.count, 0);
 

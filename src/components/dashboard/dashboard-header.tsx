@@ -16,7 +16,7 @@ interface DashboardHeaderProps {
 
 function getRoleTitle(role: string) {
   if (role === 'CEO') return 'CEO';
-  if (role === 'ADMIN') return 'HR Admin';
+  if (role === 'ADMIN') return 'HR';
   if (role === 'MANAGER') return 'Manager';
   return 'Team Member';
 }

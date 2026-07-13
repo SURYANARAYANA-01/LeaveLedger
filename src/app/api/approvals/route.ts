@@ -33,11 +33,17 @@ export async function POST(req: NextRequest) {
       where: { id: requestId },
       include: {
         leaveType: true,
-        user: { select: { id: true, name: true, role: true, managerId: true } },
+        user: { select: { id: true, name: true, role: true, managerId: true, companyId: true } },
       },
     });
 
     if (!request) {
+      return NextResponse.json({ success: false, message: 'Leave request not found' }, { status: 404 });
+    }
+
+    // A reviewer may only act on requests from their own company, even if
+    // the role hierarchy would otherwise match.
+    if (request.user.companyId !== session.user.companyId) {
       return NextResponse.json({ success: false, message: 'Leave request not found' }, { status: 404 });
     }
 

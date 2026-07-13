@@ -194,7 +194,7 @@ export default function DashboardClientLayout({
                     {user.name}
                   </span>
                   <span className="text-[10px] text-slate-500 font-medium">
-                    {user.role === 'ADMIN' ? 'HR Admin' : user.role === 'CEO' ? 'CEO' : user.role === 'MANAGER' ? 'Manager' : 'Team Member'}
+                    {user.role === 'ADMIN' ? 'HR' : user.role === 'CEO' ? 'CEO' : user.role === 'MANAGER' ? 'Manager' : 'Team Member'}
                   </span>
                 </div>
               </div>

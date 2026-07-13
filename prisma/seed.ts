@@ -14,8 +14,14 @@ async function main() {
   await prisma.user.deleteMany();
   await prisma.department.deleteMany();
   await prisma.leaveType.deleteMany();
+  await prisma.company.deleteMany();
 
   const passwordHash = await bcrypt.hash('demo1234', 12);
+
+  // 0. Create the demo Company
+  const company = await prisma.company.create({
+    data: { name: 'Digital Heroes Demo Co.' },
+  });
 
   // 1. Create Departments
   const engineering = await prisma.department.create({
@@ -106,9 +112,10 @@ async function main() {
   const ceo = await prisma.user.create({
     data: {
       email: 'ceo@leaveledger.com',
-      name: 'Charles CEO',
+      name: 'Charles Whitfield',
       password: passwordHash,
       role: UserRole.CEO,
+      companyId: company.id,
       phone: '+15550100300',
       joiningDate: new Date('2019-01-15'),
     },
@@ -117,9 +124,10 @@ async function main() {
   const hrAdmin = await prisma.user.create({
     data: {
       email: 'admin@leaveledger.com',
-      name: 'Sarah HR Admin',
+      name: 'Sarah Mitchell',
       password: passwordHash,
       role: UserRole.ADMIN,
+      companyId: company.id,
       departmentId: hr.id,
       managerId: ceo.id,
       phone: '+15550100200',
@@ -136,9 +144,10 @@ async function main() {
   const manager = await prisma.user.create({
     data: {
       email: 'manager@leaveledger.com',
-      name: 'David Manager',
+      name: 'David Chen',
       password: passwordHash,
       role: UserRole.MANAGER,
+      companyId: company.id,
       departmentId: engineering.id,
       managerId: hrAdmin.id,
       phone: '+15550100201',
@@ -155,9 +164,10 @@ async function main() {
   const employee = await prisma.user.create({
     data: {
       email: 'demo@leaveledger.com',
-      name: 'Alex Employee',
+      name: 'Alex Kim',
       password: passwordHash,
       role: UserRole.EMPLOYEE,
+      companyId: company.id,
       departmentId: engineering.id,
       managerId: manager.id,
       phone: '+15550100202',

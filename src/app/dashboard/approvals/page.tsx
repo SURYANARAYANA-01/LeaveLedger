@@ -36,7 +36,7 @@ export default async function ApprovalsPage() {
     where: {
       status: 'PENDING',
       userId: { not: userId },
-      user: { role: { in: scopedRoles } },
+      user: { role: { in: scopedRoles }, companyId: session.user.companyId },
     },
     include: {
       user: {
@@ -50,7 +50,7 @@ export default async function ApprovalsPage() {
   });
 
   const roleLabel: Record<string, string> = {
-    ADMIN: 'HR Admin',
+    ADMIN: 'HR',
     MANAGER: 'Manager',
     EMPLOYEE: 'Employee',
   };

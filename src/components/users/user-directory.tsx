@@ -189,7 +189,7 @@ export default function UserDirectory({ users: initialUsers, departments, manage
   }, [users, searchTerm, roleFilter, deptFilter]);
 
   const roleGroupOrder: { role: UserType['role']; label: string }[] = [
-    { role: 'ADMIN', label: 'HR Admin' },
+    { role: 'ADMIN', label: 'HR' },
     { role: 'MANAGER', label: 'Manager' },
     { role: 'EMPLOYEE', label: 'Employee' },
   ];
@@ -228,7 +228,7 @@ export default function UserDirectory({ users: initialUsers, departments, manage
               <option value="ALL">All Roles</option>
               <option value="EMPLOYEE">Employee</option>
               {!isManager && <option value="MANAGER">Manager</option>}
-              {isCeo && <option value="ADMIN">HR Admin</option>}
+              {isCeo && <option value="ADMIN">HR</option>}
             </select>
           </div>
 
@@ -297,7 +297,7 @@ export default function UserDirectory({ users: initialUsers, departments, manage
                         : 'bg-indigo-50 dark:bg-indigo-950/20 text-indigo-600 dark:text-indigo-400 border-indigo-100/50'
                     )}
                   >
-                    {user.role === 'ADMIN' ? 'HR Admin' : user.role === 'MANAGER' ? 'Manager' : 'Employee'}
+                    {user.role === 'ADMIN' ? 'HR' : user.role === 'MANAGER' ? 'Manager' : 'Employee'}
                   </span>
                 </div>
 
@@ -416,7 +416,7 @@ export default function UserDirectory({ users: initialUsers, departments, manage
                   >
                     <option value="EMPLOYEE">Employee</option>
                     {!isManager && <option value="MANAGER">Manager</option>}
-                    {isCeo && <option value="ADMIN">HR Admin</option>}
+                    {isCeo && <option value="ADMIN">HR</option>}
                   </select>
                 </div>
 
@@ -536,7 +536,7 @@ export default function UserDirectory({ users: initialUsers, departments, manage
                   >
                     <option value="EMPLOYEE">Employee</option>
                     {!isManager && <option value="MANAGER">Manager</option>}
-                    {isCeo && <option value="ADMIN">HR Admin</option>}
+                    {isCeo && <option value="ADMIN">HR</option>}
                   </select>
                 </div>
 

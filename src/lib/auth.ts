@@ -11,11 +11,13 @@ declare module 'next-auth' {
       id: string;
       role: UserRole;
       departmentId: string | null;
+      companyId: string;
     } & DefaultSession['user'];
   }
   interface User {
     role: UserRole;
     departmentId: string | null;
+    companyId: string;
   }
 }
 
@@ -24,6 +26,7 @@ declare module '@auth/core/jwt' {
     id: string;
     role: UserRole;
     departmentId: string | null;
+    companyId: string;
   }
 }
 
@@ -55,6 +58,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             password: true,
             role: true,
             departmentId: true,
+            companyId: true,
             isActive: true,
           },
         });
@@ -70,6 +74,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           name: user.name,
           role: user.role,
           departmentId: user.departmentId,
+          companyId: user.companyId,
         };
       },
     }),
@@ -80,6 +85,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.id = user.id as string;
         token.role = user.role;
         token.departmentId = user.departmentId;
+        token.companyId = user.companyId;
       }
       return token;
     },
@@ -87,6 +93,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       session.user.id = token.id;
       session.user.role = token.role;
       session.user.departmentId = token.departmentId;
+      session.user.companyId = token.companyId;
       return session;
     },
   },

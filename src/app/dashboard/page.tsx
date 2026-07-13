@@ -15,6 +15,7 @@ export default async function DashboardPage() {
 
   const userId = session.user.id;
   const role = session.user.role;
+  const companyId = session.user.companyId;
 
   // 1. Common Data: Upcoming Holidays
   const holidays = await prisma.holiday.findMany({
@@ -37,15 +38,17 @@ export default async function DashboardPage() {
     // Match the exact same review scope as the Approvals Queue page, so the
     // "Active Leave Requests" count never includes the viewer's own pending
     // request or requests outside what they're actually responsible for.
+    // Every query below is also scoped to the viewer's own company, so two
+    // registered companies never see each other's headcount or requests.
     const reviewableRoles = role === 'ADMIN' ? ['MANAGER', 'EMPLOYEE'] : ['MANAGER', 'ADMIN'];
 
     const [activeEmployeesCount, activeRequestsCount, onLeaveTodayCount, leaveTypes] = await Promise.all([
-      prisma.user.count({ where: { isActive: true, role: 'EMPLOYEE' } }),
+      prisma.user.count({ where: { isActive: true, role: 'EMPLOYEE', companyId } }),
       prisma.leaveRequest.count({
         where: {
           status: 'PENDING',
           userId: { not: userId },
-          user: { role: { in: reviewableRoles } },
+          user: { role: { in: reviewableRoles }, companyId },
         },
       }),
       prisma.leaveRequest.count({
@@ -53,6 +56,7 @@ export default async function DashboardPage() {
           status: 'APPROVED',
           startDate: { lte: today },
           endDate: { gte: today },
+          user: { companyId },
         },
       }),
       prisma.leaveType.findMany({ where: { isActive: true } }),
@@ -61,6 +65,7 @@ export default async function DashboardPage() {
     // Calculate distributions
     const requestsByType = await prisma.leaveRequest.groupBy({
       by: ['leaveTypeId'],
+      where: { user: { companyId } },
       _count: { id: true },
     });
 

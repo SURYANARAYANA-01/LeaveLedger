@@ -172,7 +172,7 @@ export default function Sidebar({ role, userName }: SidebarProps) {
                 {userName}
               </span>
               <span className="text-[10px] text-slate-500 font-medium">
-                {role === 'ADMIN' ? 'HR Admin' : role === 'CEO' ? 'CEO' : role === 'MANAGER' ? 'Manager' : 'Team Member'}
+                {role === 'ADMIN' ? 'HR' : role === 'CEO' ? 'CEO' : role === 'MANAGER' ? 'Manager' : 'Team Member'}
               </span>
             </div>
           </div>

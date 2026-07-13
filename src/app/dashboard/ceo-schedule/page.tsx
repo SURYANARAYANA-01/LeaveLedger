@@ -22,7 +22,7 @@ export default async function CeoSchedulePage() {
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">CEO Schedule</h1>
         <p className="text-sm text-slate-500 mt-1">
-          Record periods when you will be unavailable. Entries require no approval and notify HR Admins.
+          Record periods when you will be unavailable. Entries require no approval and notify HR.
         </p>
       </div>
 

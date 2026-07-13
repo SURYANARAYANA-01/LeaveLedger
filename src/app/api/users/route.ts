@@ -48,6 +48,7 @@ export async function POST(req: NextRequest) {
         name,
         password: passwordHash,
         role,
+        companyId: session.user.companyId,
         departmentId: departmentId || null,
         managerId: managerId || null,
         phone: phone || null,
@@ -103,6 +104,10 @@ export async function PUT(req: NextRequest) {
     });
 
     if (!existing) {
+      return NextResponse.json({ success: false, message: 'User not found' }, { status: 404 });
+    }
+
+    if (existing.companyId !== session.user.companyId) {
       return NextResponse.json({ success: false, message: 'User not found' }, { status: 404 });
     }
 

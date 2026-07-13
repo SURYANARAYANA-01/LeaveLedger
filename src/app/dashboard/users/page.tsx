@@ -14,15 +14,18 @@ export default async function UsersPage() {
   }
 
   const currentRole = role as 'ADMIN' | 'MANAGER' | 'CEO';
+  const companyId = session.user.companyId;
 
   // Role-based visibility: managers see employees only, HR sees managers +
-  // employees (not other HR accounts), CEO sees everyone.
+  // employees (not other HR accounts), CEO sees everyone. Always scoped to
+  // the viewer's own company — this is a multi-tenant app, so without this
+  // filter every company would see every other company's user directory.
   const visibleRoleFilter =
     currentRole === 'MANAGER'
-      ? { role: 'EMPLOYEE' as const }
+      ? { role: 'EMPLOYEE' as const, companyId }
       : currentRole === 'ADMIN'
-      ? { role: { in: ['MANAGER', 'EMPLOYEE'] as const } }
-      : {}; // CEO — no filter, sees everyone
+      ? { role: { in: ['MANAGER', 'EMPLOYEE'] as const }, companyId }
+      : { companyId }; // CEO — sees everyone, but only within their own company
 
   // Fetch users with their department and manager relations
   const users = await prisma.user.findMany({
@@ -44,11 +47,12 @@ export default async function UsersPage() {
     orderBy: { name: 'asc' },
   });
 
-  // Fetch potential managers (users with MANAGER or ADMIN role)
+  // Fetch potential managers (users with MANAGER or ADMIN role), same company only
   const managers = await prisma.user.findMany({
     where: {
       role: { in: ['MANAGER', 'ADMIN'] },
       isActive: true,
+      companyId,
     },
     select: { id: true, name: true },
     orderBy: { name: 'asc' },
