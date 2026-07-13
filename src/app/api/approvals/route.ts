@@ -53,57 +53,32 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Enforce hierarchy: the approver must be the direct manager of the applicant
-    // Employee -> MANAGER approves, Manager -> ADMIN approves, Admin -> CEO approves
+    // Enforce review scope per role:
+    //   MANAGER → only their direct-report Employees
+    //   ADMIN (HR) → any Manager or Employee, org-wide
+    //   CEO → any Manager or HR Admin, org-wide
     const approverRole = session.user.role as UserRole;
     const applicantRole = request.user.role as UserRole;
 
-    const hierarchyMap: Record<UserRole, UserRole | null> = {
-      EMPLOYEE: 'MANAGER',
-      MANAGER: 'ADMIN',
-      ADMIN: 'CEO',
-      CEO: null,
+    const allowedApplicantRoles: Record<UserRole, UserRole[]> = {
+      MANAGER: ['EMPLOYEE'],
+      ADMIN: ['MANAGER', 'EMPLOYEE'],
+      CEO: ['MANAGER', 'ADMIN'],
+      EMPLOYEE: [],
     };
 
-    const expectedApproverRole = hierarchyMap[applicantRole];
-
-    if (expectedApproverRole === null) {
+    if (!allowedApplicantRoles[approverRole]?.includes(applicantRole)) {
       return NextResponse.json(
-        { success: false, message: 'The CEO does not require approval.' },
-        { status: 400 }
-      );
-    }
-
-    if (approverRole !== expectedApproverRole) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: `A ${applicantRole.toLowerCase()}'s leave must be approved by a ${expectedApproverRole.toLowerCase()}.`,
-        },
+        { success: false, message: `You are not authorized to review a ${applicantRole.toLowerCase()}'s leave request.` },
         { status: 403 }
       );
     }
 
-    // For MANAGER role: ensure the applicant directly reports to this manager
+    // Managers retain the direct-report restriction; HR and CEO review org-wide
+    // within their allowed roles above, so no managerId match is required there.
     if (approverRole === 'MANAGER' && request.user.managerId !== session.user.id) {
       return NextResponse.json(
         { success: false, message: 'You are not the direct manager of this employee.' },
-        { status: 403 }
-      );
-    }
-
-    // For ADMIN role: ensure the applicant (a manager) directly reports to this admin
-    if (approverRole === 'ADMIN' && request.user.managerId !== session.user.id) {
-      return NextResponse.json(
-        { success: false, message: 'This manager does not report to you.' },
-        { status: 403 }
-      );
-    }
-
-    // For CEO role: ensure the applicant (an admin) directly reports to this CEO
-    if (approverRole === 'CEO' && request.user.managerId !== session.user.id) {
-      return NextResponse.json(
-        { success: false, message: 'This HR Admin does not report to you.' },
         { status: 403 }
       );
     }

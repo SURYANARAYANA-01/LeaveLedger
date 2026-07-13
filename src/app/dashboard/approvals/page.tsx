@@ -22,24 +22,22 @@ export default async function ApprovalsPage() {
   const role = session.user.role as UserRole;
 
   /**
-   * Hierarchy:
-   *   CEO   → approves ADMIN leave requests (managerId = CEO id)
-   *   ADMIN → approves MANAGER leave requests (managerId = ADMIN id)
-   *   MANAGER → approves EMPLOYEE leave requests (managerId = MANAGER id)
-   *
-   * In all cases, exclude requests submitted by the current reviewer themselves.
+   * Approval scope (not just direct reports, but everyone that role level
+   * is responsible for reviewing), grouped into separate sections:
+   *   MANAGER → Employee requests only (single section)
+   *   ADMIN (HR) → Manager requests + Employee requests (two sections)
+   *   CEO → Manager requests + HR requests (two sections)
+   * In all cases, exclude the reviewer's own requests.
    */
-  const whereCondition = {
-    status: 'PENDING' as const,
-    // Never show the reviewer's own requests
-    userId: { not: userId },
-    user: {
-      managerId: userId,
-    },
-  };
+  const scopedRoles: UserRole[] =
+    role === 'MANAGER' ? ['EMPLOYEE'] : role === 'ADMIN' ? ['MANAGER', 'EMPLOYEE'] : ['MANAGER', 'ADMIN'];
 
   const requests = await prisma.leaveRequest.findMany({
-    where: whereCondition,
+    where: {
+      status: 'PENDING',
+      userId: { not: userId },
+      user: { role: { in: scopedRoles } },
+    },
     include: {
       user: {
         select: { id: true, name: true, role: true, avatar: true, managerId: true },
@@ -51,12 +49,19 @@ export default async function ApprovalsPage() {
     },
   });
 
-  const roleLabel =
-    role === 'CEO'
-      ? 'HR Admin'
-      : role === 'ADMIN'
-      ? 'Manager'
-      : 'Employee';
+  const roleLabel: Record<string, string> = {
+    ADMIN: 'HR Admin',
+    MANAGER: 'Manager',
+    EMPLOYEE: 'Employee',
+  };
+
+  const groupedRequests = scopedRoles.map((r) => ({
+    role: r,
+    label: roleLabel[r],
+    list: requests.filter((req) => req.user.role === r),
+  }));
+
+  const scopeSummary = scopedRoles.map((r) => `${roleLabel[r]}s`).join(' and ');
 
   return (
     <div className="space-y-6">
@@ -65,11 +70,27 @@ export default async function ApprovalsPage() {
           Approvals Queue <ShieldCheck className="w-5 h-5 text-indigo-500" />
         </h1>
         <p className="text-slate-500 dark:text-slate-400 text-sm">
-          Review and approve/reject pending leave requests from your direct reports ({roleLabel}s).
+          Review and approve/reject pending leave requests from {scopeSummary}.
         </p>
       </div>
 
-      <ApprovalList requests={JSON.parse(JSON.stringify(requests))} />
+      {scopedRoles.length === 1 ? (
+        <ApprovalList requests={JSON.parse(JSON.stringify(requests))} />
+      ) : (
+        <div className="space-y-8">
+          {groupedRequests.map((group) => (
+            <div key={group.role} className="space-y-3">
+              <h2 className="text-sm font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                {group.label}
+                <span className="inline-flex items-center justify-center min-w-[1.5rem] h-5 px-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-[11px] font-bold">
+                  {group.list.length}
+                </span>
+              </h2>
+              <ApprovalList requests={JSON.parse(JSON.stringify(group.list))} />
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
