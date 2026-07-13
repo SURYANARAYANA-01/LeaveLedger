@@ -189,7 +189,7 @@ export default function AdminDashboard({ role, userName, stats, upcomingHolidays
                 No leave request history found.
               </div>
             ) : (
-              <div className="flex flex-col md:flex-row items-center gap-8">
+              <div className="flex flex-col md:flex-row items-center justify-center gap-14">
                 {/* Donut - left */}
                 <div className="relative flex-shrink-0" style={{ width: BOX, height: BOX }}>
                   <svg viewBox={`0 0 ${BOX} ${BOX}`} width={BOX} height={BOX} role="img" aria-label="Donut chart of leave requests by type">
@@ -267,7 +267,7 @@ export default function AdminDashboard({ role, userName, stats, upcomingHolidays
                 </div>
 
                 {/* Legend - right */}
-                <div className="flex-1 w-full space-y-1.5">
+                <div className="w-full max-w-[220px] space-y-1.5">
                   {segments.map((seg, idx) => (
                     <div
                       key={`legend-${idx}`}
