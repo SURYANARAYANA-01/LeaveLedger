@@ -78,7 +78,7 @@ export default function ManagerDashboard({ userName, stats, upcomingHolidays }: 
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-gradient-to-r from-indigo-900/10 via-violet-900/5 to-slate-900/0 border border-indigo-500/10 p-6 rounded-2xl">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-800 dark:text-slate-100 flex items-center gap-2">
-            {greeting}, {firstName} <UserCheck className="w-5 h-5 text-indigo-500" />
+            👋 {greeting}, {firstName} <UserCheck className="w-5 h-5 text-indigo-500" />
           </h1>
           <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
             Overview of team capacity, leave approvals queue, and calendar events.

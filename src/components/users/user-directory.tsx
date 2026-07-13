@@ -125,8 +125,6 @@ export default function UserDirectory({ users: initialUsers, departments, manage
         setIsAddOpen(false);
         resetAdd();
         router.refresh();
-        // Fallback live update
-        window.location.reload();
       } else {
         toast.error(result.message || 'Failed to create user.');
       }
@@ -154,8 +152,6 @@ export default function UserDirectory({ users: initialUsers, departments, manage
         setEditingUser(null);
         resetEdit();
         router.refresh();
-        // Fallback live update
-        window.location.reload();
       } else {
         toast.error(result.message || 'Failed to update user.');
       }

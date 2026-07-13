@@ -37,11 +37,14 @@ export default function AdminDashboard({ role, userName, stats, upcomingHolidays
     else setGreeting('Good evening');
   }, []);
 
-  const CX = 130;
-  const CY = 130;
-  const R = 90;
-  const STROKE = 34;
+  const CX = 230;
+  const CY = 150;
+  const R = 78;
+  const STROKE = 30;
   const CIRC = 2 * Math.PI * R;
+  const LINE_OUT = 20;
+  const BEND_MARGIN = 32;
+  const TICK_LEN = 20;
 
   const totalRequests = stats.leaveTypeDistribution.reduce((sum, d) => sum + d.count, 0);
 
@@ -57,11 +60,11 @@ export default function AdminDashboard({ role, userName, stats, upcomingHolidays
 
       const onRingX = CX + R * Math.cos(rad);
       const onRingY = CY + R * Math.sin(rad);
-      const outX = CX + (R + 26) * Math.cos(rad);
-      const outY = CY + (R + 26) * Math.sin(rad);
+      const outX = CX + (R + LINE_OUT) * Math.cos(rad);
+      const outY = CY + (R + LINE_OUT) * Math.sin(rad);
       const isRight = Math.cos(rad) >= 0;
-      const bendX = isRight ? Math.max(outX, CX + R + 40) : Math.min(outX, CX - R - 40);
-      const tickX = isRight ? bendX + 26 : bendX - 26;
+      const bendX = isRight ? Math.max(outX, CX + R + BEND_MARGIN) : Math.min(outX, CX - R - BEND_MARGIN);
+      const tickX = isRight ? bendX + TICK_LEN : bendX - TICK_LEN;
 
       const segLen =
         Math.hypot(outX - onRingX, outY - onRingY) +
@@ -90,7 +93,7 @@ export default function AdminDashboard({ role, userName, stats, upcomingHolidays
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-gradient-to-r from-indigo-900/10 via-violet-900/5 to-slate-900/0 border border-indigo-500/10 p-6 rounded-2xl">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-800 dark:text-slate-100 flex items-center gap-2">
-            {greeting}, {firstName} <ShieldCheck className="w-5 h-5 text-indigo-500" />
+            👋 {greeting}, {firstName} <ShieldCheck className="w-5 h-5 text-indigo-500" />
           </h1>
           <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
             {role === 'CEO'
@@ -99,6 +102,13 @@ export default function AdminDashboard({ role, userName, stats, upcomingHolidays
           </p>
         </div>
         <div className="flex items-center gap-3">
+          <Link
+            href="/dashboard/approvals"
+            className="inline-flex items-center justify-center space-x-2 bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-3 rounded-xl font-semibold shadow-lg shadow-indigo-600/25 transition-all duration-200 cursor-pointer self-start lg:self-center"
+          >
+            <span>Open Approvals Queue</span>
+            <ArrowRight className="w-4 h-4" />
+          </Link>
           <Link
             href="/dashboard/users"
             className="inline-flex items-center justify-center space-x-2 bg-indigo-650 hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-500 text-white px-4 py-2.5 rounded-xl font-semibold shadow-sm transition-all cursor-pointer"
@@ -187,7 +197,7 @@ export default function AdminDashboard({ role, userName, stats, upcomingHolidays
               </div>
             ) : (
               <>
-                <svg viewBox="0 0 380 260" className="w-full h-auto" role="img" aria-label="Donut chart of leave requests by type">
+                <svg viewBox="0 0 460 300" className="w-full h-auto" style={{ maxWidth: 460, margin: '0 auto', display: 'block' }} role="img" aria-label="Donut chart of leave requests by type">
                   <title>Leave request distribution</title>
                   <circle cx={CX} cy={CY} r={R} fill="none" stroke="currentColor" className="text-slate-100 dark:text-slate-800" strokeWidth={STROKE} />
                   {segments.map((seg, idx) => (
