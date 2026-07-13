@@ -44,7 +44,7 @@ export default function AdminDashboard({ role, userName, stats, upcomingHolidays
   const R = 95;
   const STROKE = 34;
   const CIRC = 2 * Math.PI * R;
-  const LINE_OUT = 9;
+  const LINE_OUT = 22;
 
   const totalRequests = stats.leaveTypeDistribution.reduce((sum, d) => sum + d.count, 0);
 
@@ -193,7 +193,6 @@ export default function AdminDashboard({ role, userName, stats, upcomingHolidays
                 {/* Donut - left */}
                 <div className="relative flex-shrink-0" style={{ width: BOX, height: BOX }}>
                   <svg viewBox={`0 0 ${BOX} ${BOX}`} width={BOX} height={BOX} role="img" aria-label="Donut chart of leave requests by type">
-                    <title>Leave request distribution</title>
                     <circle cx={CX} cy={CY} r={R} fill="none" stroke="currentColor" className="text-slate-100 dark:text-slate-800" strokeWidth={STROKE} />
                     {segments.map((seg, idx) => (
                       <circle
@@ -260,6 +259,9 @@ export default function AdminDashboard({ role, userName, stats, upcomingHolidays
                       }}
                     >
                       <div className="text-xs font-bold text-slate-800 dark:text-slate-100">{hovered.name}</div>
+                      <div className="text-[11px] text-slate-500 dark:text-slate-400">
+                        {hovered.count} {hovered.count === 1 ? 'request' : 'requests'}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -271,17 +273,12 @@ export default function AdminDashboard({ role, userName, stats, upcomingHolidays
                       key={`legend-${idx}`}
                       onMouseEnter={() => seg.count > 0 && setHoveredIdx(idx)}
                       onMouseLeave={() => setHoveredIdx(null)}
-                      className={`flex items-center justify-between px-3 py-2 rounded-xl cursor-pointer transition-colors ${
+                      className={`flex items-center gap-2 px-3 py-2 rounded-xl cursor-pointer transition-colors ${
                         hoveredIdx === idx ? 'bg-slate-50 dark:bg-slate-800/60' : ''
                       }`}
                     >
-                      <div className="flex items-center gap-2 min-w-0">
-                        <span className="w-2.5 h-2.5 rounded-sm flex-shrink-0" style={{ backgroundColor: seg.color }} />
-                        <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 truncate">{seg.name}</span>
-                      </div>
-                      <span className="text-sm font-bold text-slate-500 dark:text-slate-400 flex-shrink-0 ml-3">
-                        {seg.count}
-                      </span>
+                      <span className="w-2.5 h-2.5 rounded-sm flex-shrink-0" style={{ backgroundColor: seg.color }} />
+                      <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 truncate">{seg.name}</span>
                     </div>
                   ))}
                 </div>
