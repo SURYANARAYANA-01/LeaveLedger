@@ -192,6 +192,18 @@ export default function UserDirectory({ users: initialUsers, departments, manage
     });
   }, [users, searchTerm, roleFilter, deptFilter]);
 
+  const roleGroupOrder: { role: UserType['role']; label: string }[] = [
+    { role: 'ADMIN', label: 'HR Admin' },
+    { role: 'MANAGER', label: 'Manager' },
+    { role: 'EMPLOYEE', label: 'Employee' },
+  ];
+
+  const groupedUsers = useMemo(() => {
+    return roleGroupOrder
+      .map((g) => ({ ...g, list: filteredUsers.filter((u) => u.role === g.role) }))
+      .filter((g) => g.list.length > 0);
+  }, [filteredUsers]);
+
   return (
     <div className="space-y-6">
       {/* Controls & Filter Bar */}
@@ -252,14 +264,23 @@ export default function UserDirectory({ users: initialUsers, departments, manage
         </div>
       </div>
 
-      {/* Directory Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredUsers.length === 0 ? (
-          <div className="col-span-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl py-12 text-center text-sm text-slate-400">
-            No employees found matching criteria.
-          </div>
-        ) : (
-          filteredUsers.map((user) => (
+      {/* Directory Grid, grouped by role */}
+      {filteredUsers.length === 0 ? (
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl py-12 text-center text-sm text-slate-400">
+          No employees found matching criteria.
+        </div>
+      ) : (
+        <div className="space-y-8">
+          {groupedUsers.map((group) => (
+            <div key={group.role} className="space-y-4">
+              <h2 className="text-sm font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                {group.label}
+                <span className="inline-flex items-center justify-center min-w-[1.5rem] h-5 px-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-[11px] font-bold">
+                  {group.list.length}
+                </span>
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {group.list.map((user) => (
             <div
               key={user.id}
               className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4 hover:border-slate-300 dark:hover:border-slate-700 transition-colors flex flex-col justify-between"
@@ -334,9 +355,12 @@ export default function UserDirectory({ users: initialUsers, departments, manage
                 </div>
               </div>
             </div>
-          ))
-        )}
-      </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Add Employee Modal */}
       {isAddOpen && (
