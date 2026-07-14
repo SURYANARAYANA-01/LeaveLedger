@@ -14,7 +14,7 @@ export default async function HolidaysPage() {
     orderBy: { date: 'asc' },
   });
 
-  const isAdmin = session.user.role === 'ADMIN';
+  const isAdmin = session.user.role === 'ADMIN' || session.user.role === 'CEO';
 
   return (
     <div className="space-y-6">

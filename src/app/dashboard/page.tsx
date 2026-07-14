@@ -42,8 +42,12 @@ export default async function DashboardPage() {
     // registered companies never see each other's headcount or requests.
     const reviewableRoles = role === 'ADMIN' ? ['MANAGER', 'EMPLOYEE'] : ['MANAGER', 'ADMIN'];
 
+    // "Active Employees" reflects total active staff visible to this role's
+    // org view — HR sees Manager + Employee, CEO sees everyone but themselves.
+    const activeEmployeeRoles = role === 'ADMIN' ? ['MANAGER', 'EMPLOYEE'] : ['MANAGER', 'ADMIN', 'EMPLOYEE'];
+
     const [activeEmployeesCount, activeRequestsCount, onLeaveTodayCount, leaveTypes] = await Promise.all([
-      prisma.user.count({ where: { isActive: true, role: 'EMPLOYEE', companyId } }),
+      prisma.user.count({ where: { isActive: true, role: { in: activeEmployeeRoles }, companyId } }),
       prisma.leaveRequest.count({
         where: {
           status: 'PENDING',
@@ -78,6 +82,21 @@ export default async function DashboardPage() {
       };
     });
 
+    const recentRequests = await prisma.leaveRequest.findMany({
+      where: {
+        userId: { not: userId },
+        user: { role: { in: reviewableRoles }, companyId },
+      },
+      include: {
+        user: {
+          select: { id: true, name: true, email: true, avatar: true, role: true },
+        },
+        leaveType: true,
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 5,
+    });
+
     return (
       <AdminDashboard
         role={role}
@@ -87,6 +106,7 @@ export default async function DashboardPage() {
           activeLeaveRequests: activeRequestsCount,
           onLeaveToday: onLeaveTodayCount,
           leaveTypeDistribution,
+          recentRequests: JSON.parse(JSON.stringify(recentRequests)),
         }}
         upcomingHolidays={JSON.parse(JSON.stringify(holidays))}
       />
@@ -95,7 +115,7 @@ export default async function DashboardPage() {
 
   if (role === 'MANAGER') {
     // Manager Dashboard queries
-    const [subordinatesCount, pendingApprovalsCount, onLeaveTodayCount, teamRequests] = await Promise.all([
+    const [subordinatesCount, pendingApprovalsCount, onLeaveTodayCount, teamRequests, leaveTypes] = await Promise.all([
       prisma.user.count({ where: { managerId: userId, isActive: true } }),
       prisma.leaveRequest.count({
         where: {
@@ -126,7 +146,23 @@ export default async function DashboardPage() {
         },
         take: 5,
       }),
+      prisma.leaveType.findMany({ where: { isActive: true } }),
     ]);
+
+    const requestsByType = await prisma.leaveRequest.groupBy({
+      by: ['leaveTypeId'],
+      where: { user: { managerId: userId } },
+      _count: { id: true },
+    });
+
+    const leaveTypeDistribution = leaveTypes.map((type) => {
+      const group = requestsByType.find((g) => g.leaveTypeId === type.id);
+      return {
+        name: type.name,
+        count: group ? group._count.id : 0,
+        color: type.color || '#4F46E5',
+      };
+    });
 
     return (
       <ManagerDashboard
@@ -137,6 +173,7 @@ export default async function DashboardPage() {
           onLeaveToday: onLeaveTodayCount,
           teamRequests: JSON.parse(JSON.stringify(teamRequests)),
           recentTeamRequests: JSON.parse(JSON.stringify(teamRequests)),
+          leaveTypeDistribution,
         }}
         upcomingHolidays={JSON.parse(JSON.stringify(holidays))}
       />

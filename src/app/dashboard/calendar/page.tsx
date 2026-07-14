@@ -11,12 +11,15 @@ export default async function CalendarPage() {
     redirect('/login');
   }
 
+  const companyId = session.user.companyId;
+
   // Fetch approved and pending leaves for the team calendar
   const leaves = await prisma.leaveRequest.findMany({
     where: {
       status: {
         in: ['APPROVED', 'PENDING'],
       },
+      user: { companyId },
     },
     include: {
       user: {
@@ -62,6 +65,7 @@ export default async function CalendarPage() {
 
   // Fetch CEO schedules
   const ceoSchedule = await prisma.ceoSchedule.findMany({
+    where: { user: { companyId } },
     include: {
       user: {
         select: {

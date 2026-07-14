@@ -7,8 +7,13 @@ import {
   Clock,
   CalendarCheck2,
   ArrowRight,
-  ShieldCheck
+  ShieldCheck,
+  Check,
+  X
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { formatDateRange, getStatusColor } from '@/lib/utils';
+import { toast } from 'sonner';
 
 interface AdminDashboardProps {
   role: 'ADMIN' | 'CEO';
@@ -18,14 +23,46 @@ interface AdminDashboardProps {
     activeLeaveRequests: number;
     onLeaveToday: number;
     leaveTypeDistribution: { name: string; count: number; color: string }[];
+    recentRequests: {
+      id: string;
+      totalDays: number;
+      startDate: string;
+      endDate: string;
+      status: string;
+      user: { id: string; name: string; email: string; avatar: string | null; role: string };
+      leaveType: { name: string };
+    }[];
   };
   upcomingHolidays: { id: string; name: string; date: string; isOptional: boolean; description: string | null }[];
 }
 
 export default function AdminDashboard({ role, userName, stats, upcomingHolidays }: AdminDashboardProps) {
+  const router = useRouter();
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
   const [greeting, setGreeting] = useState('Welcome back');
   const firstName = userName.split(' ')[0];
+
+  const handleQuickAction = async (requestId: string, action: 'APPROVED' | 'REJECTED') => {
+    try {
+      const response = await fetch('/api/approvals', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ requestId, action, note: 'Quick review from dashboard.' }),
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        toast.success(`Request ${action.toLowerCase()} successfully!`);
+        router.refresh();
+      } else {
+        toast.error(result.message || 'Action failed.');
+      }
+    } catch (e) {
+      toast.error('An error occurred.');
+    }
+  };
 
   React.useEffect(() => {
     const hour = new Date().getHours();
@@ -164,6 +201,84 @@ export default function AdminDashboard({ role, userName, stats, upcomingHolidays
             </Link>
           );
         })}
+      </div>
+
+      {/* Recent Team Requests */}
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-bold text-slate-800 dark:text-slate-200">
+            Recent Team Requests
+          </h2>
+          <Link
+            href="/dashboard/approvals"
+            className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline"
+          >
+            Manage all requests
+          </Link>
+        </div>
+
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-850 rounded-2xl shadow-sm overflow-hidden">
+          {stats.recentRequests.length === 0 ? (
+            <div className="p-8 text-center text-sm text-slate-400">
+              No leave requests pending or submitted recently.
+            </div>
+          ) : (
+            <div className="divide-y divide-slate-100 dark:divide-slate-800">
+              {stats.recentRequests.map((request, idx) => (
+                <div
+                  key={idx}
+                  className="p-5 hover:bg-slate-50/50 dark:hover:bg-slate-800/10 transition-all flex flex-col md:flex-row md:items-center justify-between gap-4"
+                >
+                  <div className="min-w-0 flex items-center space-x-3">
+                    <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold text-sm flex-shrink-0">
+                      {request.user.name[0]}
+                    </div>
+                    <div className="min-w-0">
+                      <span className="font-bold text-sm text-slate-800 dark:text-slate-200 block truncate">
+                        {request.user.name}
+                        <span className="ml-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                          {request.user.role === 'ADMIN' ? 'HR' : request.user.role}
+                        </span>
+                      </span>
+                      <span className="text-xs text-slate-400 mt-0.5 block">
+                        {request.leaveType.name} • {request.totalDays} {request.totalDays === 1 ? 'day' : 'days'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                    {formatDateRange(request.startDate, request.endDate)}
+                  </div>
+
+                  <div className="flex items-center space-x-3 self-end md:self-center">
+                    {request.status === 'PENDING' ? (
+                      <>
+                        <button
+                          onClick={() => handleQuickAction(request.id, 'APPROVED')}
+                          className="p-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 dark:bg-emerald-950/20 dark:hover:bg-emerald-900/30 dark:text-emerald-400 rounded-lg cursor-pointer transition-all border border-emerald-200/20"
+                          title="Approve"
+                        >
+                          <Check className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleQuickAction(request.id, 'REJECTED')}
+                          className="p-2 bg-rose-50 hover:bg-rose-100 text-rose-600 dark:bg-rose-950/20 dark:hover:bg-rose-900/30 dark:text-rose-400 rounded-lg cursor-pointer transition-all border border-rose-200/20"
+                          title="Reject"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </>
+                    ) : (
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold ${getStatusColor(request.status)}`}>
+                        {request.status}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Row 2: Analytics & Upcoming Holidays */}

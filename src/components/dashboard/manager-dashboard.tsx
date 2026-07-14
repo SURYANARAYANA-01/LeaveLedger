@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import Link from 'next/link';
 import { formatDateRange, getStatusColor } from '@/lib/utils';
 import {
@@ -35,6 +35,7 @@ interface ManagerDashboardProps {
     onLeaveToday: number;
     teamRequests: LeaveRequestSummary[];
     recentTeamRequests: LeaveRequestSummary[];
+    leaveTypeDistribution: { name: string; count: number; color: string }[];
   };
   upcomingHolidays: { id: string; name: string; date: string; isOptional: boolean; description: string | null }[];
 }
@@ -42,7 +43,44 @@ interface ManagerDashboardProps {
 export default function ManagerDashboard({ userName, stats, upcomingHolidays }: ManagerDashboardProps) {
   const router = useRouter();
   const [greeting, setGreeting] = React.useState('Welcome back');
+  const [hoveredIdx, setHoveredIdx] = React.useState<number | null>(null);
   const firstName = userName.split(' ')[0];
+
+  const BOX = 260;
+  const CX = BOX / 2;
+  const CY = BOX / 2;
+  const R = 95;
+  const STROKE = 34;
+  const CIRC = 2 * Math.PI * R;
+  const LINE_OUT = 30;
+
+  const totalRequests = stats.leaveTypeDistribution.reduce((sum, d) => sum + d.count, 0);
+
+  const segments = useMemo(() => {
+    let cumulativeDeg = 0;
+    return stats.leaveTypeDistribution.map((dist) => {
+      const pct = totalRequests > 0 ? dist.count / totalRequests : 0;
+      const sweepDeg = pct * 360;
+      const startDeg = cumulativeDeg;
+      cumulativeDeg += sweepDeg;
+      const midDeg = startDeg + sweepDeg / 2 - 90;
+      const rad = (midDeg * Math.PI) / 180;
+
+      const onRingX = CX + R * Math.cos(rad);
+      const onRingY = CY + R * Math.sin(rad);
+      const outX = CX + (R + LINE_OUT) * Math.cos(rad);
+      const outY = CY + (R + LINE_OUT) * Math.sin(rad);
+      const tipX = CX + (R + LINE_OUT + 8) * Math.cos(rad);
+      const tipY = CY + (R + LINE_OUT + 8) * Math.sin(rad);
+      const tooltipXPct = Math.min(88, Math.max(12, (tipX / BOX) * 100));
+      const tooltipYPct = Math.min(90, Math.max(10, (tipY / BOX) * 100));
+      const segLen = Math.hypot(outX - onRingX, outY - onRingY);
+
+      return { ...dist, pct, startDeg, sweepDeg, onRingX, onRingY, outX, outY, tooltipXPct, tooltipYPct, segLen };
+    });
+  }, [stats.leaveTypeDistribution, totalRequests]);
+
+  const hovered = hoveredIdx !== null ? segments[hoveredIdx] : null;
 
   React.useEffect(() => {
     const hour = new Date().getHours();
@@ -266,6 +304,102 @@ export default function ManagerDashboard({ userName, stats, upcomingHolidays }: 
               ))
             )}
           </div>
+        </div>
+      </div>
+
+      {/* Team Leave Request Distribution */}
+      <div className="space-y-6">
+        <h2 className="text-lg font-bold text-slate-800 dark:text-slate-200">
+          Team Leave Request Distribution
+        </h2>
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-850 p-6 rounded-2xl shadow-sm">
+          {stats.leaveTypeDistribution.length === 0 || totalRequests === 0 ? (
+            <div className="py-6 text-center text-xs text-slate-400">
+              No leave request history found for your team.
+            </div>
+          ) : (
+            <div className="flex flex-col md:flex-row items-center justify-center gap-14">
+              <div className="relative flex-shrink-0" style={{ width: BOX, height: BOX }}>
+                <svg viewBox={`0 0 ${BOX} ${BOX}`} width={BOX} height={BOX} role="img" aria-label="Donut chart of team leave requests by type">
+                  <circle cx={CX} cy={CY} r={R} fill="none" stroke="currentColor" className="text-slate-100 dark:text-slate-800" strokeWidth={STROKE} />
+                  {segments.map((seg, idx) => (
+                    <circle
+                      key={`arc-${idx}`}
+                      cx={CX}
+                      cy={CY}
+                      r={R}
+                      fill="none"
+                      stroke={seg.color}
+                      strokeWidth={hoveredIdx === idx ? STROKE + 5 : STROKE}
+                      strokeDasharray={`${(seg.pct * CIRC).toFixed(2)} ${CIRC.toFixed(2)}`}
+                      strokeDashoffset={(-((seg.startDeg / 360) * CIRC)).toFixed(2)}
+                      transform={`rotate(-90 ${CX} ${CY})`}
+                      style={{ transition: 'stroke-width 200ms ease', cursor: seg.count > 0 ? 'pointer' : 'default', opacity: seg.count === 0 ? 0.35 : 1 }}
+                      onMouseEnter={() => seg.count > 0 && setHoveredIdx(idx)}
+                      onMouseLeave={() => setHoveredIdx(null)}
+                    />
+                  ))}
+                  <text x={CX} y={CY - 6} textAnchor="middle" className="fill-slate-800 dark:fill-slate-100" style={{ fontSize: 30, fontWeight: 700 }}>
+                    {totalRequests}
+                  </text>
+                  <text x={CX} y={CY + 16} textAnchor="middle" className="fill-slate-400" style={{ fontSize: 12 }}>
+                    total requests
+                  </text>
+                  {segments.map((seg, idx) => {
+                    const isHovered = hoveredIdx === idx;
+                    return (
+                      <g key={`leader-${idx}`} style={{ pointerEvents: 'none' }}>
+                        <line
+                          x1={seg.onRingX}
+                          y1={seg.onRingY}
+                          x2={seg.outX}
+                          y2={seg.outY}
+                          stroke={seg.color}
+                          strokeWidth={2}
+                          strokeDasharray={seg.segLen}
+                          strokeDashoffset={isHovered ? 0 : seg.segLen}
+                          style={{ transition: 'stroke-dashoffset 300ms ease' }}
+                        />
+                        <circle
+                          cx={seg.outX}
+                          cy={seg.outY}
+                          r={3}
+                          fill={seg.color}
+                          style={{ opacity: isHovered ? 1 : 0, transition: 'opacity 150ms ease 250ms' }}
+                        />
+                      </g>
+                    );
+                  })}
+                </svg>
+                {hovered && (
+                  <div
+                    className="absolute pointer-events-none bg-white dark:bg-slate-800 shadow-lg border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1 whitespace-nowrap transition-all duration-200"
+                    style={{ left: `${hovered.tooltipXPct}%`, top: `${hovered.tooltipYPct}%`, transform: 'translate(-50%, -50%)', zIndex: 10 }}
+                  >
+                    <div className="text-xs font-bold text-slate-800 dark:text-slate-100">{hovered.name}</div>
+                    <div className="text-[11px] text-slate-500 dark:text-slate-400">
+                      {hovered.count} {hovered.count === 1 ? 'request' : 'requests'}
+                    </div>
+                  </div>
+                )}
+              </div>
+              <div className="w-full max-w-[220px] space-y-1.5">
+                {segments.map((seg, idx) => (
+                  <div
+                    key={`legend-${idx}`}
+                    onMouseEnter={() => seg.count > 0 && setHoveredIdx(idx)}
+                    onMouseLeave={() => setHoveredIdx(null)}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-xl cursor-pointer transition-colors ${
+                      hoveredIdx === idx ? 'bg-slate-50 dark:bg-slate-800/60' : ''
+                    }`}
+                  >
+                    <span className="w-2.5 h-2.5 rounded-sm flex-shrink-0" style={{ backgroundColor: seg.color }} />
+                    <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 truncate">{seg.name}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
