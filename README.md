@@ -1,36 +1,78 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# LeaveLedger
 
-## Getting Started
+> PTO requests, approvals, and balance tracking for managers, HR, and leadership — with a role model deep enough that a Manager, HR, and CEO each see a genuinely different, correctly-scoped view of the company.
 
-First, run the development server:
+**Live demo → _add your deployed URL here once live_**
+
+## Features
+
+- Multi-tenant company registration — sign up your company, get a CEO account, invite the rest of your team
+- Four-role hierarchy (Employee / Manager / HR / CEO) with server-enforced, per-role visibility and permissions — not just hidden UI
+- Leave request submission, balance tracking, and a role-scoped approvals queue with quick approve/reject
+- Personal + team dashboards per role, with an interactive animated donut chart of leave-type distribution
+- Role-scoped User Directory, grouped by role, with add/edit permissions that match who's allowed to manage whom
+- Company holiday calendar and team leave calendar
+- Light/dark theme, system-aware
+
+## Tech Stack
+
+Next.js (App Router) · TypeScript · PostgreSQL (Prisma) · Tailwind CSS · Auth.js (NextAuth v5) · Zod
+
+## Quick Start
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/SURYANARAYANA-01/LeaveLedger.git && cd LeaveLedger
+cp .env.example .env      # then fill in DATABASE_URL and AUTH_SECRET
+npm install
+npx prisma migrate dev    # applies schema, creates tables
+npx prisma db seed        # seeds one demo company + 4 demo accounts
+npm run dev                # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Environment Variables
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Variable | Description |
+| --- | --- |
+| `DATABASE_URL` | PostgreSQL connection string |
+| `AUTH_SECRET` | Session signing secret for Auth.js — generate with `npx auth secret` |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Architecture
 
-## Learn More
+Multi-tenant: every company that registers gets its own `Company` row, and every user, leave request, and directory/approval query is scoped by `companyId` so tenants never see each other's data. Authorization is enforced server-side on every route and API handler — role checks never rely on what the client sends. See [`docs/architecture.md`](docs/architecture.md) for the data model and the role/permission matrix.
 
-To learn more about Next.js, take a look at the following resources:
+## Demo credentials
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+All seeded accounts use the password `demo1234`:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Role | Email |
+| --- | --- |
+| CEO | ceo@leaveledger.com |
+| HR | admin@leaveledger.com |
+| Manager | manager@leaveledger.com |
+| Employee | demo@leaveledger.com |
 
-## Deploy on Vercel
+## Testing
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+npm run lint         # ESLint
+npx tsc --noEmit      # TypeScript strict check
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Roadmap
+
+- [ ] Deploy to Vercel with a live demo URL
+- [ ] CSV export for leave requests and the user directory
+- [ ] Audit/activity log for approvals
+- [ ] Cmd+K command palette
+
+## Screenshots
+
+_Add screenshots of the Manager, HR, and CEO dashboards, the User Directory, and the Approvals Queue here — see `docs/screenshots/`._
+
+## License
+
+MIT — see [LICENSE](LICENSE).
+
+---
+
+Built as part of the [Digital Heroes](https://www.linkedin.com/in/prasunanand/) Full Stack Developer Trial.
