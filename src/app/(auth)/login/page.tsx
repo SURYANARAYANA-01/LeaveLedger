@@ -57,7 +57,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="backdrop-blur-xl bg-slate-900/60 border border-slate-800 rounded-2xl shadow-2xl p-8 relative overflow-hidden">
+    <div className="backdrop-blur-xl bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-8 relative overflow-hidden">
       <div className="absolute top-0 right-0 p-4 opacity-20">
         <Sparkles className="w-8 h-8 text-indigo-400" />
       </div>
@@ -66,17 +66,17 @@ export default function LoginPage() {
         <div className="inline-flex items-center justify-center p-3 bg-indigo-500/10 rounded-xl border border-indigo-500/20 mb-4">
           <KeyRound className="w-8 h-8 text-indigo-400" />
         </div>
-        <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-200 via-slate-100 to-indigo-200 bg-clip-text text-transparent">
+        <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-600 via-slate-700 to-indigo-600 dark:from-indigo-200 dark:via-slate-100 dark:to-indigo-200 bg-clip-text text-transparent">
           LeaveLedger
         </h1>
-        <p className="text-slate-400 text-sm mt-2">
+        <p className="text-slate-500 dark:text-slate-400 text-sm mt-2">
           Enterprise Leave Management System
         </p>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
+          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
             Email Address
           </label>
           <div className="relative">
@@ -85,7 +85,7 @@ export default function LoginPage() {
               type="email"
               {...register('email')}
               placeholder="name@company.com"
-              className="w-full pl-10 pr-4 py-3 bg-slate-950/50 border border-slate-800 rounded-lg text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+              className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
             />
           </div>
           {errors.email && (
@@ -94,7 +94,7 @@ export default function LoginPage() {
         </div>
 
         <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
+          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
             Password
           </label>
           <div className="relative">
@@ -103,7 +103,7 @@ export default function LoginPage() {
               type="password"
               {...register('password')}
               placeholder="••••••••"
-              className="w-full pl-10 pr-4 py-3 bg-slate-950/50 border border-slate-800 rounded-lg text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+              className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
             />
           </div>
           {errors.password && (
@@ -127,7 +127,7 @@ export default function LoginPage() {
         </button>
       </form>
 
-      <p className="text-center text-sm text-slate-400 mt-6">
+      <p className="text-center text-sm text-slate-500 dark:text-slate-400 mt-6">
         Don't have an account?{' '}
         <Link href="/register" className="text-indigo-400 hover:text-indigo-300 font-medium">
           Register your company
@@ -135,32 +135,32 @@ export default function LoginPage() {
       </p>
 
       {/* Demo credentials quick fill */}
-      <div className="mt-8 pt-6 border-t border-slate-800/80">
-        <p className="text-center text-xs font-semibold uppercase tracking-wider text-slate-500 mb-3">
+      <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-800/80">
+        <p className="text-center text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-500 mb-3">
           Quick demo logins
         </p>
         <div className="grid grid-cols-4 gap-2">
           <button
             onClick={() => fillCredentials('demo@leaveledger.com')}
-            className="px-2 py-2 bg-slate-950/50 border border-slate-800/80 rounded-lg text-[11px] font-medium text-slate-300 hover:bg-indigo-500/10 hover:border-indigo-500/30 transition-all cursor-pointer"
+            className="px-2 py-2 bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800/80 rounded-lg text-[11px] font-medium text-slate-600 dark:text-slate-300 hover:bg-indigo-500/10 hover:border-indigo-500/30 transition-all cursor-pointer"
           >
             Employee
           </button>
           <button
             onClick={() => fillCredentials('manager@leaveledger.com')}
-            className="px-2 py-2 bg-slate-950/50 border border-slate-800/80 rounded-lg text-[11px] font-medium text-slate-300 hover:bg-indigo-500/10 hover:border-indigo-500/30 transition-all cursor-pointer"
+            className="px-2 py-2 bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800/80 rounded-lg text-[11px] font-medium text-slate-600 dark:text-slate-300 hover:bg-indigo-500/10 hover:border-indigo-500/30 transition-all cursor-pointer"
           >
             Manager
           </button>
           <button
             onClick={() => fillCredentials('admin@leaveledger.com')}
-            className="px-2 py-2 bg-slate-950/50 border border-slate-800/80 rounded-lg text-[11px] font-medium text-slate-300 hover:bg-indigo-500/10 hover:border-indigo-500/30 transition-all cursor-pointer"
+            className="px-2 py-2 bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800/80 rounded-lg text-[11px] font-medium text-slate-600 dark:text-slate-300 hover:bg-indigo-500/10 hover:border-indigo-500/30 transition-all cursor-pointer"
           >
             HR
           </button>
           <button
             onClick={() => fillCredentials('ceo@leaveledger.com')}
-            className="px-2 py-2 bg-slate-950/50 border border-slate-800/80 rounded-lg text-[11px] font-medium text-slate-300 hover:bg-indigo-500/10 hover:border-indigo-500/30 transition-all cursor-pointer"
+            className="px-2 py-2 bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800/80 rounded-lg text-[11px] font-medium text-slate-600 dark:text-slate-300 hover:bg-indigo-500/10 hover:border-indigo-500/30 transition-all cursor-pointer"
           >
             CEO
           </button>

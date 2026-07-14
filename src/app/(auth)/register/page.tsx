@@ -52,7 +52,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="backdrop-blur-xl bg-slate-900/60 border border-slate-800 rounded-2xl shadow-2xl p-8 relative overflow-hidden">
+    <div className="backdrop-blur-xl bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-8 relative overflow-hidden">
       <div className="absolute top-0 right-0 p-4 opacity-20">
         <Sparkles className="w-8 h-8 text-indigo-400" />
       </div>
@@ -61,17 +61,17 @@ export default function RegisterPage() {
         <div className="inline-flex items-center justify-center p-3 bg-indigo-500/10 rounded-xl border border-indigo-500/20 mb-4">
           <Building2 className="w-8 h-8 text-indigo-400" />
         </div>
-        <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-200 via-slate-100 to-indigo-200 bg-clip-text text-transparent">
+        <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-600 via-slate-700 to-indigo-600 dark:from-indigo-200 dark:via-slate-100 dark:to-indigo-200 bg-clip-text text-transparent">
           Set up your company
         </h1>
-        <p className="text-slate-400 text-sm mt-2">
+        <p className="text-slate-500 dark:text-slate-400 text-sm mt-2">
           Creates your company workspace and your CEO account. You'll add HR, managers, and employees afterward.
         </p>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
+          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
             Company Name
           </label>
           <div className="relative">
@@ -80,7 +80,7 @@ export default function RegisterPage() {
               type="text"
               {...register('companyName')}
               placeholder="Acme Inc."
-              className="w-full pl-10 pr-4 py-3 bg-slate-950/50 border border-slate-800 rounded-lg text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+              className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
             />
           </div>
           {errors.companyName && (
@@ -89,7 +89,7 @@ export default function RegisterPage() {
         </div>
 
         <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
+          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
             Your Full Name
           </label>
           <div className="relative">
@@ -98,7 +98,7 @@ export default function RegisterPage() {
               type="text"
               {...register('name')}
               placeholder="Jane Founder"
-              className="w-full pl-10 pr-4 py-3 bg-slate-950/50 border border-slate-800 rounded-lg text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+              className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
             />
           </div>
           {errors.name && (
@@ -107,7 +107,7 @@ export default function RegisterPage() {
         </div>
 
         <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
+          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
             Email Address
           </label>
           <div className="relative">
@@ -116,7 +116,7 @@ export default function RegisterPage() {
               type="email"
               {...register('email')}
               placeholder="you@company.com"
-              className="w-full pl-10 pr-4 py-3 bg-slate-950/50 border border-slate-800 rounded-lg text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+              className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
             />
           </div>
           {errors.email && (
@@ -125,7 +125,7 @@ export default function RegisterPage() {
         </div>
 
         <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
+          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
             Password
           </label>
           <div className="relative">
@@ -134,7 +134,7 @@ export default function RegisterPage() {
               type="password"
               {...register('password')}
               placeholder="••••••••"
-              className="w-full pl-10 pr-4 py-3 bg-slate-950/50 border border-slate-800 rounded-lg text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+              className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
             />
           </div>
           {errors.password && (
@@ -158,7 +158,7 @@ export default function RegisterPage() {
         </button>
       </form>
 
-      <p className="text-center text-sm text-slate-400 mt-6">
+      <p className="text-center text-sm text-slate-500 dark:text-slate-400 mt-6">
         Already have an account?{' '}
         <Link href="/login" className="text-indigo-400 hover:text-indigo-300 font-medium">
           Sign in
