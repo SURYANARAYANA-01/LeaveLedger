@@ -41,7 +41,7 @@ model User {
   notifications     Notification[]
   company           Company        @relation(fields: [companyId], references: [id])
   department        Department?    @relation("DepartmentMembers", fields: [departmentId], references: [id])
-  manager           User?          @relation("ManagerSubordinates", fields: [managerId], references: [id])
+  manager           User?          @relation("ManagerSubordinates", fields: [managerId], references: [id], onDelete: SetNull)
   subordinates      User[]         @relation("ManagerSubordinates")
 
   @@index([departmentId])
@@ -58,7 +58,7 @@ model Department {
   parentId    String?
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
-  head        User?        @relation("DepartmentHead", fields: [headId], references: [id])
+  head        User?        @relation("DepartmentHead", fields: [headId], references: [id], onDelete: SetNull)
   parent      Department?  @relation("DepartmentHierarchy", fields: [parentId], references: [id])
   children    Department[] @relation("DepartmentHierarchy")
   members     User[]       @relation("DepartmentMembers")
@@ -117,7 +117,7 @@ model LeaveRequest {
   reviewedAt   DateTime?
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
-  approver     User?       @relation("ApproverRequests", fields: [approverId], references: [id])
+  approver     User?       @relation("ApproverRequests", fields: [approverId], references: [id], onDelete: SetNull)
   leaveType    LeaveType   @relation(fields: [leaveTypeId], references: [id])
   user         User        @relation("EmployeeRequests", fields: [userId], references: [id], onDelete: Cascade)
 

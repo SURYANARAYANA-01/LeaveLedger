@@ -168,3 +168,51 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 });
   }
 }
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const session = await auth();
+    const deleterRole = session?.user?.role;
+    if (!session?.user || (deleterRole !== 'ADMIN' && deleterRole !== 'MANAGER' && deleterRole !== 'CEO')) {
+      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get('id');
+    if (!id) {
+      return NextResponse.json({ success: false, message: 'Missing user id' }, { status: 400 });
+    }
+
+    if (id === session.user.id) {
+      return NextResponse.json({ success: false, message: 'You cannot delete your own account' }, { status: 400 });
+    }
+
+    const existing = await prisma.user.findUnique({ where: { id } });
+    if (!existing) {
+      return NextResponse.json({ success: false, message: 'User not found' }, { status: 404 });
+    }
+
+    if (existing.companyId !== session.user.companyId) {
+      return NextResponse.json({ success: false, message: 'User not found' }, { status: 404 });
+    }
+
+    // Same review-scope rules as editing: Manager -> Employees only,
+    // HR -> Manager + Employee (not other HR), CEO -> anyone.
+    if (deleterRole === 'MANAGER' && existing.role !== 'EMPLOYEE') {
+      return NextResponse.json({ success: false, message: 'Managers can only delete employees' }, { status: 403 });
+    }
+    if (deleterRole === 'ADMIN' && existing.role === 'ADMIN') {
+      return NextResponse.json({ success: false, message: 'HR cannot delete other HR accounts' }, { status: 403 });
+    }
+
+    // Cascades to their leave requests/balances/notifications/schedules;
+    // sets managerId/approverId/headId to null anywhere they're referenced
+    // elsewhere, per the schema relations — never blocked by orphaned refs.
+    await prisma.user.delete({ where: { id } });
+
+    return NextResponse.json({ success: true, message: 'User deleted' });
+  } catch (error) {
+    console.error('Error deleting user:', error);
+    return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 });
+  }
+}

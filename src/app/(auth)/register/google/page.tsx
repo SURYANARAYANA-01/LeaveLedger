@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import { Building2, Loader2, Sparkles, CheckCircle2 } from 'lucide-react';
@@ -13,6 +13,18 @@ export default function GoogleRegisterCompletionPage() {
   const [companyName, setCompanyName] = useState('');
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
+
+  // Automatically continue the sign-in once the company is created — the
+  // browser still has an active Google session from moments ago, so this
+  // redirect is typically silent/instant rather than showing the picker
+  // again, avoiding a second manual click.
+  useEffect(() => {
+    if (!done) return;
+    const timer = setTimeout(() => {
+      signIn('google', { callbackUrl: '/dashboard' });
+    }, 800);
+    return () => clearTimeout(timer);
+  }, [done]);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,7 +62,7 @@ export default function GoogleRegisterCompletionPage() {
         </div>
         <h1 className="text-2xl font-extrabold text-slate-800 dark:text-slate-100">Company created</h1>
         <p className="text-slate-500 dark:text-slate-400 text-sm mt-2 mb-6">
-          Your workspace is ready. Continue with Google once more to sign in as CEO.
+          Signing you in as CEO...
         </p>
         <button
           onClick={() => signIn('google', { callbackUrl: '/dashboard' })}

@@ -20,7 +20,8 @@ import {
   Calendar,
   Building,
   UserCheck,
-  X
+  X,
+  Trash2
 } from 'lucide-react';
 import { cn, formatDate } from '@/lib/utils';
 
@@ -77,6 +78,8 @@ export default function UserDirectory({ users: initialUsers, departments, manage
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<UserType | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
 
   // React Hook Form for Create User
@@ -171,7 +174,32 @@ export default function UserDirectory({ users: initialUsers, departments, manage
     setEditValue('managerId', user.manager?.id || '');
     setEditValue('phone', user.phone || '');
     setEditValue('isActive', user.isActive);
+    setConfirmDelete(false);
     setIsEditOpen(true);
+  };
+
+  const handleDeleteUser = async () => {
+    if (!editingUser) return;
+    setDeleteLoading(true);
+    try {
+      const response = await fetch(`/api/users?id=${editingUser.id}`, { method: 'DELETE' });
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        toast.error(result.message || 'Failed to delete user.');
+        return;
+      }
+
+      toast.success(`${editingUser.name} was deleted.`);
+      setIsEditOpen(false);
+      setEditingUser(null);
+      setConfirmDelete(false);
+      router.refresh();
+    } catch (error) {
+      toast.error('An unexpected error occurred.');
+    } finally {
+      setDeleteLoading(false);
+    }
   };
 
   // Filter and search logic
@@ -581,24 +609,60 @@ export default function UserDirectory({ users: initialUsers, departments, manage
                 </label>
               </div>
 
-              <div className="pt-4 flex items-center justify-end space-x-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsEditOpen(false);
-                    setEditingUser(null);
-                  }}
-                  className="px-4 py-2 text-xs font-bold text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-205 dark:border-slate-800 rounded-xl cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={actionLoading}
-                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-550 text-white text-xs font-bold rounded-xl flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-50"
-                >
-                  {actionLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <span>Save Changes</span>}
-                </button>
+              <div className="pt-4 flex items-center justify-between">
+                {editingUser && canEditUser(editingUser) ? (
+                  confirmDelete ? (
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-semibold text-rose-600">Delete permanently?</span>
+                    <button
+                      type="button"
+                      onClick={handleDeleteUser}
+                      disabled={deleteLoading}
+                      className="px-3 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                    >
+                      {deleteLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <span>Yes, delete</span>}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setConfirmDelete(false)}
+                      className="px-3 py-2 text-xs font-bold text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-205 dark:border-slate-800 rounded-xl cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setConfirmDelete(true)}
+                    className="px-4 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/20 border border-rose-200 dark:border-rose-900/40 rounded-xl cursor-pointer flex items-center gap-1.5"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Delete</span>
+                  </button>
+                  )
+                ) : (
+                  <div />
+                )}
+
+                <div className="flex items-center space-x-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsEditOpen(false);
+                      setEditingUser(null);
+                    }}
+                    className="px-4 py-2 text-xs font-bold text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-205 dark:border-slate-800 rounded-xl cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={actionLoading}
+                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-550 text-white text-xs font-bold rounded-xl flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-50"
+                  >
+                    {actionLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <span>Save Changes</span>}
+                  </button>
+                </div>
               </div>
             </form>
           </div>
