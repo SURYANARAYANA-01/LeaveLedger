@@ -2,6 +2,7 @@ import React from 'react';
 import { redirect } from 'next/navigation';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/db';
+import { UserRole } from '@prisma/client';
 import EmployeeDashboard from '@/components/dashboard/employee-dashboard';
 import ManagerDashboard from '@/components/dashboard/manager-dashboard';
 import AdminDashboard from '@/components/dashboard/admin-dashboard';
@@ -40,11 +41,15 @@ export default async function DashboardPage() {
     // request or requests outside what they're actually responsible for.
     // Every query below is also scoped to the viewer's own company, so two
     // registered companies never see each other's headcount or requests.
-    const reviewableRoles = role === 'ADMIN' ? ['MANAGER', 'EMPLOYEE'] : ['MANAGER', 'ADMIN'];
+    const reviewableRoles: UserRole[] =
+  role === 'ADMIN'
+    ? [UserRole.MANAGER, UserRole.EMPLOYEE]
+    : [UserRole.MANAGER, UserRole.ADMIN];
 
-    // "Active Employees" reflects total active staff visible to this role's
-    // org view — HR sees Manager + Employee, CEO sees everyone but themselves.
-    const activeEmployeeRoles = role === 'ADMIN' ? ['MANAGER', 'EMPLOYEE'] : ['MANAGER', 'ADMIN', 'EMPLOYEE'];
+const activeEmployeeRoles: UserRole[] =
+  role === 'ADMIN'
+    ? [UserRole.MANAGER, UserRole.EMPLOYEE]
+    : [UserRole.MANAGER, UserRole.ADMIN, UserRole.EMPLOYEE];
 
     const [activeEmployeesCount, activeRequestsCount, onLeaveTodayCount, leaveTypes] = await Promise.all([
       prisma.user.count({ where: { isActive: true, role: { in: activeEmployeeRoles }, companyId } }),
