@@ -1,7 +1,9 @@
 import NextAuth, { type DefaultSession } from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
+import Google from 'next-auth/providers/google';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs';
+import { SignJWT, jwtVerify } from 'jose';
 import { prisma } from '@/lib/db';
 import type { UserRole } from '@prisma/client';
 
@@ -35,6 +37,25 @@ const loginSchema = z.object({
   password: z.string().min(6),
 });
 
+const secret = process.env.AUTH_SECRET;
+
+// Short-lived, signed handoff token used only for the "brand-new Google
+// sign-in with no matching account yet" case — proves to /register/google
+// that this email genuinely completed a real Google OAuth round-trip,
+// rather than trusting a raw, spoofable query parameter.
+export async function signGoogleHandoffToken(email: string, name: string) {
+  return new SignJWT({ email, name })
+    .setProtectedHeader({ alg: 'HS256' })
+    .setIssuedAt()
+    .setExpirationTime('10m')
+    .sign(new TextEncoder().encode(secret));
+}
+
+export async function verifyGoogleHandoffToken(token: string) {
+  const { payload } = await jwtVerify(token, new TextEncoder().encode(secret));
+  return payload as { email: string; name: string };
+}
+
 export const { handlers, signIn, signOut, auth } = NextAuth({
   session: { strategy: 'jwt' },
   pages: { signIn: '/login' },
@@ -63,7 +84,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           },
         });
 
-        if (!user || !user.isActive) return null;
+        // No account, deactivated, not yet activated via invite, or a
+        // Google-only account with no password set — all reject here.
+        if (!user || !user.isActive || !user.password) return null;
 
         const passwordValid = await bcrypt.compare(password, user.password);
         if (!passwordValid) return null;
@@ -78,14 +101,50 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         };
       },
     }),
+    Google({
+      clientId: process.env.AUTH_GOOGLE_ID,
+      clientSecret: process.env.AUTH_GOOGLE_SECRET,
+    }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async signIn({ user, account }) {
+      if (account?.provider !== 'google') return true;
+      if (!user.email) return false;
+
+      const existing = await prisma.user.findUnique({ where: { email: user.email } });
+
+      if (existing) {
+        // Matches an existing account (created via invite, via /register,
+        // or a previous Google sign-in) — deactivated accounts still can't
+        // sign in even via Google.
+        return existing.isActive;
+      }
+
+      // No account with this email yet: this is someone starting a brand
+      // new company via "Continue with Google". We can't create the
+      // Company + CEO here (we still need a company name), so hand off to
+      // a short form instead of silently auto-creating an account.
+      const token = await signGoogleHandoffToken(user.email, user.name ?? '');
+      return `/register/google?token=${encodeURIComponent(token)}`;
+    },
+    async jwt({ token, user, account }) {
       if (user) {
-        token.id = user.id as string;
-        token.role = user.role;
-        token.departmentId = user.departmentId;
-        token.companyId = user.companyId;
+        if (account?.provider === 'google') {
+          // The `user` object from Google doesn't carry our custom fields —
+          // look up the real row we just matched in the signIn callback.
+          const dbUser = await prisma.user.findUnique({ where: { email: user.email! } });
+          if (dbUser) {
+            token.id = dbUser.id;
+            token.role = dbUser.role;
+            token.departmentId = dbUser.departmentId;
+            token.companyId = dbUser.companyId;
+          }
+        } else {
+          token.id = user.id as string;
+          token.role = user.role;
+          token.departmentId = user.departmentId;
+          token.companyId = user.companyId;
+        }
       }
       return token;
     },

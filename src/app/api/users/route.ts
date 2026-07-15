@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { createUserSchema, updateUserSchema } from '@/lib/validators/user';
-import bcrypt from 'bcryptjs';
+import { sendInviteEmail } from '@/lib/email';
+import crypto from 'crypto';
 
 export async function POST(req: NextRequest) {
   try {
@@ -19,7 +20,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, message: 'Invalid data', errors: parsed.error.format() }, { status: 400 });
     }
 
-    const { email, name, password, role: requestedRole, departmentId, managerId, phone } = parsed.data;
+    const { email, name, role: requestedRole, departmentId, managerId, phone } = parsed.data;
 
     // Never trust the payload's role — scope what each creator role may assign:
     // Manager -> Employee only; HR (Admin) -> Manager or Employee (not HR);
@@ -40,20 +41,28 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, message: 'Email already registered' }, { status: 400 });
     }
 
-    const passwordHash = await bcrypt.hash(password, 12);
+    const inviteToken = crypto.randomBytes(32).toString('hex');
+    const inviteTokenExpiry = new Date(Date.now() + 48 * 60 * 60 * 1000); // 48 hours
 
     const user = await prisma.user.create({
       data: {
         email,
         name,
-        password: passwordHash,
+        password: null, // set by the invited user themselves, once they verify
         role,
         companyId: session.user.companyId,
         departmentId: departmentId || null,
         managerId: managerId || null,
         phone: phone || null,
+        isActive: false, // activated only once the invite link is used
+        inviteToken,
+        inviteTokenExpiry,
       },
     });
+
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const inviteUrl = `${appUrl}/accept-invite?token=${inviteToken}`;
+    await sendInviteEmail(email, name, inviteUrl);
 
     // Initialize leave balances for the new user for the year 2026
     const leaveTypes = await prisma.leaveType.findMany({

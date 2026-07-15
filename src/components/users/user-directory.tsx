@@ -90,7 +90,6 @@ export default function UserDirectory({ users: initialUsers, departments, manage
     defaultValues: {
       email: '',
       name: '',
-      password: '',
       role: 'EMPLOYEE',
       departmentId: '',
       managerId: '',
@@ -121,7 +120,7 @@ export default function UserDirectory({ users: initialUsers, departments, manage
       const result = await response.json();
 
       if (result.success) {
-        toast.success('User created and balances initialized successfully!');
+        toast.success('Invite sent! They\'ll verify their email and set a password to activate their account.');
         setIsAddOpen(false);
         resetAdd();
         router.refresh();
@@ -393,17 +392,9 @@ export default function UserDirectory({ users: initialUsers, departments, manage
                   className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
                 {addErrors.email && <p className="text-xs text-rose-500">{addErrors.email.message}</p>}
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-455">Temporary Password</label>
-                <input
-                  type="password"
-                  {...registerAdd('password')}
-                  placeholder="Min 6 characters"
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
-                {addErrors.password && <p className="text-xs text-rose-500">{addErrors.password.message}</p>}
+                <p className="text-[11px] text-slate-400">
+                  We&apos;ll email this address a link to verify it and set their own password.
+                </p>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
