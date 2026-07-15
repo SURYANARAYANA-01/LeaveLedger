@@ -49,11 +49,25 @@ export async function PUT(req: NextRequest) {
       });
 
       if (!user) {
-        return NextResponse.json({ success: false, message: 'User not found' }, { status: 404 });
-      }
+  return NextResponse.json(
+    { success: false, message: 'User not found' },
+    { status: 404 }
+  );
+}
 
-      // Verify current password
-      const passwordValid = await bcrypt.compare(currentPassword, user.password);
+// Google-authenticated users don't have a password
+if (!user.password) {
+  return NextResponse.json(
+    {
+      success: false,
+      message: 'This account uses Google Sign-In. Password cannot be changed.',
+    },
+    { status: 400 }
+  );
+}
+
+// Verify current password
+const passwordValid = await bcrypt.compare(currentPassword, user.password);
       if (!passwordValid) {
         return NextResponse.json({ success: false, message: 'Incorrect current password' }, { status: 400 });
       }
