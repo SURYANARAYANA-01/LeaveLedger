@@ -4,14 +4,12 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { signIn } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
 import { loginSchema, LoginInput } from '@/lib/validators/user';
 import { toast } from 'sonner';
 import { KeyRound, Mail, Lock, Loader2, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 
 export default function LoginPage() {
-  const router = useRouter();
   const [loading, setLoading] = useState(false);
 
   const {
@@ -40,8 +38,13 @@ export default function LoginPage() {
         toast.error('Invalid credentials. Please try again.');
       } else {
         toast.success('Logged in successfully!');
-        router.push('/dashboard');
-        router.refresh();
+        // Hard navigation (not router.push) is intentional here: it
+        // guarantees the browser attaches the just-set session cookie to
+        // the next request. A client-side push can race ahead of the
+        // cookie actually being applied, briefly serving the previous
+        // session's data (e.g. switching accounts in the same browser).
+        // eslint-disable-next-line react-hooks/immutability -- window.location is a browser DOM API, not React state
+        window.location.href = '/dashboard';
       }
     } catch (error) {
       toast.error('An unexpected error occurred.');
