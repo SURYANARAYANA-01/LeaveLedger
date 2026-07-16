@@ -66,7 +66,7 @@ export default function RegisterPage() {
           Set up your company
         </h1>
         <p className="text-slate-500 dark:text-slate-400 text-sm mt-2">
-          Creates your company workspace and your CEO account. You'll add HR, managers, and employees afterward.
+          Creates your company workspace and your CEO account. You&apos;ll add HR, managers, and employees afterward.
         </p>
       </div>
 
@@ -167,7 +167,7 @@ export default function RegisterPage() {
 
       <button
         type="button"
-        onClick={() => signIn('google', { callbackUrl: '/dashboard' })}
+        onClick={() => signIn('google-register', { callbackUrl: '/dashboard' })}
         className="w-full py-3 flex items-center justify-center gap-3 bg-white dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-lg text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-900 transition-all cursor-pointer"
       >
         <svg className="w-5 h-5" viewBox="0 0 24 24">

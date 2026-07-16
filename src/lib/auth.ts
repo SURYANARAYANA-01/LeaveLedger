@@ -101,14 +101,26 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         };
       },
     }),
+    // Two instances of the same Google client, registered under different
+    // provider ids, purely so the signIn callback below can tell whether
+    // the click came from the Login page (existing accounts only) or the
+    // Register page (also allowed to start a brand-new company).
     Google({
+      id: 'google-login',
+      clientId: process.env.AUTH_GOOGLE_ID,
+      clientSecret: process.env.AUTH_GOOGLE_SECRET,
+    }),
+    Google({
+      id: 'google-register',
       clientId: process.env.AUTH_GOOGLE_ID,
       clientSecret: process.env.AUTH_GOOGLE_SECRET,
     }),
   ],
   callbacks: {
     async signIn({ user, account }) {
-      if (account?.provider !== 'google') return true;
+      const isGoogleLogin = account?.provider === 'google-login';
+      const isGoogleRegister = account?.provider === 'google-register';
+      if (!isGoogleLogin && !isGoogleRegister) return true;
       if (!user.email) return false;
 
       const existing = await prisma.user.findUnique({ where: { email: user.email } });
@@ -116,12 +128,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (existing) {
         // Matches an existing account (created via invite, via /register,
         // or a previous Google sign-in) — deactivated accounts still can't
-        // sign in even via Google.
+        // sign in even via Google. Works from either button.
         return existing.isActive;
       }
 
-      // No account with this email yet: this is someone starting a brand
-      // new company via "Continue with Google". We can't create the
+      if (isGoogleLogin) {
+        // Login page's Google button must never silently create a new
+        // company — if there's no matching account, reject with a clear
+        // error instead of routing to company setup.
+        return `/login?error=NoAccount`;
+      }
+
+      // Register page's Google button: no account with this email yet, so
+      // this is someone starting a brand new company. We can't create the
       // Company + CEO here (we still need a company name), so hand off to
       // a short form instead of silently auto-creating an account.
       const token = await signGoogleHandoffToken(user.email, user.name ?? '');
@@ -129,7 +148,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
     async jwt({ token, user, account }) {
       if (user) {
-        if (account?.provider === 'google') {
+        if (account?.provider === 'google-login' || account?.provider === 'google-register') {
           // The `user` object from Google doesn't carry our custom fields —
           // look up the real row we just matched in the signIn callback.
           const dbUser = await prisma.user.findUnique({ where: { email: user.email! } });

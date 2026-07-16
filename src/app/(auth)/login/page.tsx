@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { signIn } from 'next-auth/react';
+import { useSearchParams } from 'next/navigation';
 import { loginSchema, LoginInput } from '@/lib/validators/user';
 import { toast } from 'sonner';
 import { KeyRound, Mail, Lock, Loader2, Sparkles } from 'lucide-react';
@@ -11,6 +12,13 @@ import Link from 'next/link';
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    if (searchParams.get('error') === 'NoAccount') {
+      toast.error('No account found for that Google sign-in. Register your company first, or ask your admin to invite you.');
+    }
+  }, [searchParams]);
 
   const {
     register,
@@ -138,7 +146,7 @@ export default function LoginPage() {
 
       <button
         type="button"
-        onClick={() => signIn('google', { callbackUrl: '/dashboard' })}
+        onClick={() => signIn('google-login', { callbackUrl: '/dashboard' })}
         className="w-full py-3 flex items-center justify-center gap-3 bg-white dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-lg text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-900 transition-all cursor-pointer"
       >
         <svg className="w-5 h-5" viewBox="0 0 24 24">

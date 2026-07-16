@@ -21,7 +21,7 @@ export default function GoogleRegisterCompletionPage() {
   useEffect(() => {
     if (!done) return;
     const timer = setTimeout(() => {
-      signIn('google', { callbackUrl: '/dashboard' });
+      signIn('google-login', { callbackUrl: '/dashboard' });
     }, 800);
     return () => clearTimeout(timer);
   }, [done]);
@@ -65,7 +65,7 @@ export default function GoogleRegisterCompletionPage() {
           Signing you in as CEO...
         </p>
         <button
-          onClick={() => signIn('google', { callbackUrl: '/dashboard' })}
+          onClick={() => signIn('google-login', { callbackUrl: '/dashboard' })}
           className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-lg shadow-lg shadow-indigo-600/20 transition-all cursor-pointer"
         >
           Continue with Google
