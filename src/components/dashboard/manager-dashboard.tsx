@@ -57,12 +57,24 @@ export default function ManagerDashboard({ userName, stats, upcomingHolidays }: 
   const totalRequests = stats.leaveTypeDistribution.reduce((sum, d) => sum + d.count, 0);
 
   const segments = useMemo(() => {
-    let cumulativeDeg = 0;
-    return stats.leaveTypeDistribution.map((dist) => {
+    return stats.leaveTypeDistribution.reduce<Array<
+      (typeof stats.leaveTypeDistribution)[number] & {
+        pct: number;
+        startDeg: number;
+        sweepDeg: number;
+        onRingX: number;
+        onRingY: number;
+        outX: number;
+        outY: number;
+        tooltipXPct: number;
+        tooltipYPct: number;
+        segLen: number;
+      }
+    >>((acc, dist) => {
+      const cumulativeDeg = acc.length > 0 ? acc[acc.length - 1].startDeg + acc[acc.length - 1].sweepDeg : 0;
       const pct = totalRequests > 0 ? dist.count / totalRequests : 0;
       const sweepDeg = pct * 360;
       const startDeg = cumulativeDeg;
-      cumulativeDeg += sweepDeg;
       const midDeg = startDeg + sweepDeg / 2 - 90;
       const rad = (midDeg * Math.PI) / 180;
 
@@ -76,17 +88,23 @@ export default function ManagerDashboard({ userName, stats, upcomingHolidays }: 
       const tooltipYPct = Math.min(90, Math.max(10, (tipY / BOX) * 100));
       const segLen = Math.hypot(outX - onRingX, outY - onRingY);
 
-      return { ...dist, pct, startDeg, sweepDeg, onRingX, onRingY, outX, outY, tooltipXPct, tooltipYPct, segLen };
-    });
+      acc.push({ ...dist, pct, startDeg, sweepDeg, onRingX, onRingY, outX, outY, tooltipXPct, tooltipYPct, segLen });
+      return acc;
+    }, []);
   }, [stats.leaveTypeDistribution, totalRequests]);
 
   const hovered = hoveredIdx !== null ? segments[hoveredIdx] : null;
 
+  // Intentional: computes a time-of-day greeting that must match on server
+  // and initial client render (both start at the 'Welcome back' default)
+  // and only updates after mount, to avoid a real hydration mismatch.
   React.useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect */
     const hour = new Date().getHours();
     if (hour < 12) setGreeting('Good morning');
     else if (hour < 17) setGreeting('Good afternoon');
     else setGreeting('Good evening');
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, []);
 
   const handleQuickAction = async (requestId: string, action: 'APPROVED' | 'REJECTED') => {

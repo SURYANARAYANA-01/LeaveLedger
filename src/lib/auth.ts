@@ -168,6 +168,25 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return token;
     },
     async session({ session, token }) {
+      // Re-check the database on every session read (not just at sign-in) —
+      // this is what catches a user being deleted or deactivated outside
+      // the app (e.g. directly in Prisma Studio). Without this, a deleted
+      // user's signed JWT cookie stays valid and they'd remain "logged in"
+      // until it naturally expires, since JWT sessions are otherwise
+      // stateless and never re-checked against the database.
+      const dbUser = await prisma.user.findUnique({
+        where: { id: token.id },
+        select: { isActive: true },
+      });
+
+      if (!dbUser || !dbUser.isActive) {
+        // Deliberately leave session.user without an id — middleware and
+        // any auth() caller treats a missing user id as "not authenticated"
+        // and redirects to login with a clear explanation, rather than
+        // silently keeping a dead session alive.
+        return session;
+      }
+
       session.user.id = token.id;
       session.user.role = token.role;
       session.user.departmentId = token.departmentId;

@@ -15,8 +15,11 @@ export default function LoginPage() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    if (searchParams.get('error') === 'NoAccount') {
+    const error = searchParams.get('error');
+    if (error === 'NoAccount') {
       toast.error('No account found for that Google sign-in. Register your company first, or ask your admin to invite you.');
+    } else if (error === 'SessionExpired') {
+      toast.error('Your session has expired or your account is no longer active. Please sign in again.');
     }
   }, [searchParams]);
 
