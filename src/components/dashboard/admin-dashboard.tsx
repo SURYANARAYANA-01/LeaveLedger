@@ -15,8 +15,8 @@ import { useRouter } from 'next/navigation';
 import { formatDateRange, getStatusColor } from '@/lib/utils';
 import { toast } from 'sonner';
 
-interface AdminDashboardProps {
-  role: 'ADMIN' | 'CEO';
+interface HRDashboardProps {
+  role: 'HR' | 'CEO';
   userName: string;
   stats: {
     activeEmployees: number;
@@ -36,7 +36,7 @@ interface AdminDashboardProps {
   upcomingHolidays: { id: string; name: string; date: string; isOptional: boolean; description: string | null }[];
 }
 
-export default function AdminDashboard({ role, userName, stats, upcomingHolidays }: AdminDashboardProps) {
+export default function HRDashboard({ role, userName, stats, upcomingHolidays }: HRDashboardProps) {
   const router = useRouter();
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
   const [greeting, setGreeting] = useState('Welcome back');
@@ -255,7 +255,7 @@ export default function AdminDashboard({ role, userName, stats, upcomingHolidays
                       <span className="font-bold text-sm text-slate-800 dark:text-slate-200 block truncate">
                         {request.user.name}
                         <span className="ml-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                          {request.user.role === 'ADMIN' ? 'HR' : request.user.role}
+                          {request.user.role === 'HR' ? 'HR' : request.user.role}
                         </span>
                       </span>
                       <span className="text-xs text-slate-400 mt-0.5 block">

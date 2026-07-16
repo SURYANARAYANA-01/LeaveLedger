@@ -18,10 +18,10 @@ interface HolidayItem {
 
 interface HolidayManagerProps {
   holidays: HolidayItem[];
-  isAdmin: boolean;
+  isHR: boolean;
 }
 
-export default function HolidayManager({ holidays: initialHolidays, isAdmin }: HolidayManagerProps) {
+export default function HolidayManager({ holidays: initialHolidays, isHR }: HolidayManagerProps) {
   const router = useRouter();
   const [holidays, setHolidays] = useState<HolidayItem[]>(initialHolidays);
   const [loading, setLoading] = useState(false);
@@ -130,7 +130,7 @@ export default function HolidayManager({ holidays: initialHolidays, isAdmin }: H
                       Restricted
                     </span>
                   )}
-                  {isAdmin && (
+                  {isHR && (
                     <button
                       onClick={() => handleDelete(holiday.id)}
                       disabled={deletingId === holiday.id}
@@ -150,8 +150,8 @@ export default function HolidayManager({ holidays: initialHolidays, isAdmin }: H
         </div>
       </div>
 
-      {/* Add Holiday Form (Admin Only) */}
-      {isAdmin && (
+      {/* Add Holiday Form (HR Only) */}
+      {isHR && (
         <div className="space-y-6">
           <form onSubmit={handleSubmit(onSubmit)} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-5">
             <h2 className="text-base font-bold text-slate-850 dark:text-slate-200 flex items-center gap-1.5">

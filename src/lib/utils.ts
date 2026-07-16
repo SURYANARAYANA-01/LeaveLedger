@@ -58,7 +58,7 @@ export function getStatusColor(status: string): string {
 
 export function getRoleLabel(role: string): string {
   switch (role) {
-    case 'ADMIN': return 'HR Admin';
+    case 'HR': return 'HR HR';
     case 'MANAGER': return 'Manager';
     case 'EMPLOYEE': return 'Team Member';
     default: return role;

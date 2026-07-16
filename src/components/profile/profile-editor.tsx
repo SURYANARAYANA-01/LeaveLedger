@@ -30,7 +30,7 @@ interface UserProfile {
   id: string;
   name: string;
   email: string;
-  role: 'EMPLOYEE' | 'MANAGER' | 'ADMIN' | 'CEO';
+  role: 'EMPLOYEE' | 'MANAGER' | 'HR' | 'CEO';
   phone: string | null;
   joiningDate: string;
   avatar: string | null;
@@ -159,7 +159,7 @@ export default function ProfileEditor({ user }: ProfileEditorProps) {
   const roleLabel =
     user.role === 'CEO'
       ? 'Chief Executive Officer'
-      : user.role === 'ADMIN'
+      : user.role === 'HR'
       ? 'HR Director'
       : user.role === 'MANAGER'
       ? 'Engineering Manager'

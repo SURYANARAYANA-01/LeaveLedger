@@ -8,13 +8,13 @@ import UserDirectory from '@/components/users/user-directory';
 export default async function UsersPage() {
   const session = await auth();
 
-  // Route protection - admin (full, minus other HR), manager (employees only), CEO (everyone)
+  // Route protection - HR (full, minus other HR), manager (employees only), CEO (everyone)
   const role = session?.user?.role;
-  if (!session?.user || (role !== 'ADMIN' && role !== 'MANAGER' && role !== 'CEO')) {
+  if (!session?.user || (role !== 'HR' && role !== 'MANAGER' && role !== 'CEO')) {
     redirect('/dashboard');
   }
 
-  const currentRole = role as 'ADMIN' | 'MANAGER' | 'CEO';
+  const currentRole = role as 'HR' | 'MANAGER' | 'CEO';
   const companyId = session.user.companyId;
 
   // Role-based visibility: managers see employees only, HR sees managers +
@@ -23,7 +23,7 @@ export default async function UsersPage() {
   // filter every company would see every other company's user directory.
   const visibleRoleFilter =
   currentRole === 'MANAGER'
-    ? {role: UserRole.EMPLOYEE, companyId,} : currentRole === 'ADMIN'
+    ? {role: UserRole.EMPLOYEE, companyId,} : currentRole === 'HR'
     ? {role: {in: [UserRole.MANAGER, UserRole.EMPLOYEE],}, companyId,} : {companyId,};
 
   // Fetch users with their department and manager relations
@@ -46,10 +46,10 @@ export default async function UsersPage() {
     orderBy: { name: 'asc' },
   });
 
-  // Fetch potential managers (users with MANAGER or ADMIN role), same company only
+  // Fetch potential managers (users with MANAGER or HR role), same company only
   const managers = await prisma.user.findMany({
     where: {
-      role: {in: [UserRole.MANAGER, UserRole.ADMIN],},
+      role: {in: [UserRole.MANAGER, UserRole.HR],},
       isActive: true,
       companyId,
     },

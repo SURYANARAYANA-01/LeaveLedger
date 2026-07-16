@@ -30,16 +30,16 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Notify all HR Admins
-    const hrAdmins = await prisma.user.findMany({
-      where: { role: 'ADMIN', isActive: true },
+    // Notify all HR HRs
+    const hrHRs = await prisma.user.findMany({
+      where: { role: 'HR', isActive: true },
       select: { id: true },
     });
 
-    for (const admin of hrAdmins) {
+    for (const HR of hrHRs) {
       await prisma.notification.create({
         data: {
-          userId: admin.id,
+          userId: HR.id,
           title: 'CEO Schedule Update',
           message: `${session.user.name || 'CEO'} added a schedule entry: "${title}" (${eventType}) from ${new Date(startDate).toLocaleDateString()} to ${new Date(endDate).toLocaleDateString()}.`,
           type: 'CEO_SCHEDULE',

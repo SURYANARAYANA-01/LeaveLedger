@@ -17,7 +17,7 @@ export default function LoginPage() {
   useEffect(() => {
     const error = searchParams.get('error');
     if (error === 'NoAccount') {
-      toast.error('No account found for that Google sign-in. Register your company first, or ask your admin to invite you.');
+      toast.error('No account found for that Google sign-in. Register your company first, or ask your HR to invite you.');
     } else if (error === 'SessionExpired') {
       toast.error('Your session has expired or your account is no longer active. Please sign in again.');
     }
@@ -187,7 +187,7 @@ export default function LoginPage() {
             Manager
           </button>
           <button
-            onClick={() => fillCredentials('admin@leaveledger.com')}
+            onClick={() => fillCredentials('HR@leaveledger.com')}
             className="px-2 py-2 bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800/80 rounded-lg text-[11px] font-medium text-slate-600 dark:text-slate-300 hover:bg-indigo-500/10 hover:border-indigo-500/30 transition-all cursor-pointer"
           >
             HR

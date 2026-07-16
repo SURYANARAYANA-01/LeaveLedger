@@ -181,7 +181,7 @@ model playing_with_neon {
 enum UserRole {
   EMPLOYEE
   MANAGER
-  ADMIN
+  HR
   CEO
 }
 

@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
     if (
       !session?.user ||
       (session.user.role !== 'MANAGER' &&
-        session.user.role !== 'ADMIN' &&
+        session.user.role !== 'HR' &&
         session.user.role !== 'CEO')
     ) {
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
@@ -61,15 +61,15 @@ export async function POST(req: NextRequest) {
 
     // Enforce review scope per role:
     //   MANAGER → only their direct-report Employees
-    //   ADMIN (HR) → any Manager or Employee, org-wide
-    //   CEO → any Manager or HR Admin, org-wide
+    //   HR (HR) → any Manager or Employee, org-wide
+    //   CEO → any Manager or HR HR, org-wide
     const approverRole = session.user.role as UserRole;
     const applicantRole = request.user.role as UserRole;
 
     const allowedApplicantRoles: Record<UserRole, UserRole[]> = {
       MANAGER: ['EMPLOYEE'],
-      ADMIN: ['MANAGER', 'EMPLOYEE'],
-      CEO: ['MANAGER', 'ADMIN'],
+      HR: ['MANAGER', 'EMPLOYEE'],
+      CEO: ['MANAGER', 'HR'],
       EMPLOYEE: [],
     };
 

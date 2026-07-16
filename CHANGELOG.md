@@ -23,7 +23,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Login/Register pages now respect the app's light/dark theme system instead of being hardcoded dark.
 
 ### Changed
-- Removed "Admin"/"Administrator" wording from all user-facing text in favor of "HR".
+- Removed "HR"/"HRistrator" wording from all user-facing text in favor of "HR".
 
 ## [1.0.0] - 2026-07-12
 

@@ -108,7 +108,7 @@ async function main() {
     },
   });
 
-  // 3. Create Users (CEO, HR Admin, Manager, Employee)
+  // 3. Create Users (CEO, HR HR, Manager, Employee)
   const ceo = await prisma.user.create({
     data: {
       email: 'ceo@leaveledger.com',
@@ -121,12 +121,12 @@ async function main() {
     },
   });
 
-  const hrAdmin = await prisma.user.create({
+  const hrHR = await prisma.user.create({
     data: {
-      email: 'admin@leaveledger.com',
+      email: 'HR@leaveledger.com',
       name: 'Sarah Mitchell',
       password: passwordHash,
-      role: UserRole.ADMIN,
+      role: UserRole.HR,
       companyId: company.id,
       departmentId: hr.id,
       managerId: ceo.id,
@@ -138,7 +138,7 @@ async function main() {
   // Update HR department with head
   await prisma.department.update({
     where: { id: hr.id },
-    data: { headId: hrAdmin.id },
+    data: { headId: hrHR.id },
   });
 
   const manager = await prisma.user.create({
@@ -149,7 +149,7 @@ async function main() {
       role: UserRole.MANAGER,
       companyId: company.id,
       departmentId: engineering.id,
-      managerId: hrAdmin.id,
+      managerId: hrHR.id,
       phone: '+15550100201',
       joiningDate: new Date('2021-06-01'),
     },
@@ -176,7 +176,7 @@ async function main() {
   });
 
   // 4. Set Leave Balances for all users
-  const users = [ceo, hrAdmin, manager, employee];
+  const users = [ceo, hrHR, manager, employee];
   const leaveTypesList = [annualLeave, sickLeave, casualLeave, wfh, unpaidLeave];
 
   for (const u of users) {

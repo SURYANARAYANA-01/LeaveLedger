@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 
 interface SidebarProps {
-  role: 'EMPLOYEE' | 'MANAGER' | 'ADMIN' | 'CEO';
+  role: 'EMPLOYEE' | 'MANAGER' | 'HR' | 'CEO';
   userName: string;
 }
 
@@ -36,19 +36,19 @@ export default function Sidebar({ role, userName }: SidebarProps) {
         label: 'Dashboard',
         href: '/dashboard',
         icon: LayoutDashboard,
-        roles: ['EMPLOYEE', 'MANAGER', 'ADMIN', 'CEO'],
+        roles: ['EMPLOYEE', 'MANAGER', 'HR', 'CEO'],
       },
       {
         label: 'My Leave',
         href: '/dashboard/my-leave',
         icon: User,
-        roles: ['MANAGER', 'ADMIN'],
+        roles: ['MANAGER', 'HR'],
       },
       {
         label: 'Apply Leave',
         href: '/dashboard/leave/apply',
         icon: ClipboardList,
-        roles: ['EMPLOYEE', 'MANAGER', 'ADMIN'],
+        roles: ['EMPLOYEE', 'MANAGER', 'HR'],
       },
       {
         label: 'CEO Schedule',
@@ -60,43 +60,43 @@ export default function Sidebar({ role, userName }: SidebarProps) {
         label: 'Leave History',
         href: '/dashboard/leave/history',
         icon: History,
-        roles: ['EMPLOYEE', 'MANAGER', 'ADMIN'],
+        roles: ['EMPLOYEE', 'MANAGER', 'HR'],
       },
       {
         label: 'Team Calendar',
         href: '/dashboard/calendar',
         icon: CalendarDays,
-        roles: ['EMPLOYEE', 'MANAGER', 'ADMIN', 'CEO'],
+        roles: ['EMPLOYEE', 'MANAGER', 'HR', 'CEO'],
       },
       {
         label: 'Approvals Queue',
         href: '/dashboard/approvals',
         icon: ShieldCheck,
-        roles: ['MANAGER', 'ADMIN', 'CEO'],
+        roles: ['MANAGER', 'HR', 'CEO'],
       },
       {
         label: 'Holidays',
         href: '/dashboard/holidays',
         icon: Calendar,
-        roles: ['EMPLOYEE', 'MANAGER', 'ADMIN', 'CEO'],
+        roles: ['EMPLOYEE', 'MANAGER', 'HR', 'CEO'],
       },
       {
         label: 'User Directory',
         href: '/dashboard/users',
         icon: Users,
-        roles: ['MANAGER', 'ADMIN', 'CEO'],
+        roles: ['MANAGER', 'HR', 'CEO'],
       },
       {
         label: 'Reports & Export',
         href: '/dashboard/reports',
         icon: FileSpreadsheet,
-        roles: ['ADMIN'],
+        roles: ['HR'],
       },
       {
         label: 'Profile',
         href: '/dashboard/profile',
         icon: User,
-        roles: ['EMPLOYEE', 'MANAGER', 'ADMIN', 'CEO'],
+        roles: ['EMPLOYEE', 'MANAGER', 'HR', 'CEO'],
       },
     ];
 
@@ -172,7 +172,7 @@ export default function Sidebar({ role, userName }: SidebarProps) {
                 {userName}
               </span>
               <span className="text-[10px] text-slate-500 font-medium">
-                {role === 'ADMIN' ? 'HR' : role === 'CEO' ? 'CEO' : role === 'MANAGER' ? 'Manager' : 'Team Member'}
+                {role === 'HR' ? 'HR' : role === 'CEO' ? 'CEO' : role === 'MANAGER' ? 'Manager' : 'Team Member'}
               </span>
             </div>
           </div>

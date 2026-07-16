@@ -45,7 +45,7 @@ export type ManagerDashboardStats = {
   recentTeamRequests: LeaveRequestWithRelations[];
 };
 
-export type AdminDashboardStats = {
+export type HRDashboardStats = {
   activeEmployees: number;
   activeLeaveRequests: number;
   onLeaveToday: number;

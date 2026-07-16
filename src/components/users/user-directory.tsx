@@ -29,7 +29,7 @@ interface UserType {
   id: string;
   name: string;
   email: string;
-  role: 'EMPLOYEE' | 'MANAGER' | 'ADMIN';
+  role: 'EMPLOYEE' | 'MANAGER' | 'HR';
   phone: string | null;
   isActive: boolean;
   joiningDate: string;
@@ -52,7 +52,7 @@ interface UserDirectoryProps {
   users: UserType[];
   departments: Department[];
   managers: { id: string; name: string }[];
-  currentRole: 'ADMIN' | 'MANAGER' | 'CEO';
+  currentRole: 'HR' | 'MANAGER' | 'CEO';
 }
 
 export default function UserDirectory({ users: initialUsers, departments, managers, currentRole }: UserDirectoryProps) {
@@ -64,7 +64,7 @@ export default function UserDirectory({ users: initialUsers, departments, manage
 
   const canEditUser = (user: UserType) => {
     if (isCeo) return true;
-    if (currentRole === 'ADMIN') return user.role !== 'ADMIN'; // HR: managers + employees, not other HR
+    if (currentRole === 'HR') return user.role !== 'HR'; // HR: managers + employees, not other HR
     if (isManager) return user.role === 'EMPLOYEE'; // Manager: employees only
     return false;
   };
@@ -216,7 +216,7 @@ export default function UserDirectory({ users: initialUsers, departments, manage
   }, [users, searchTerm, roleFilter, deptFilter]);
 
   const roleGroupOrder: { role: UserType['role']; label: string }[] = [
-    { role: 'ADMIN', label: 'HR' },
+    { role: 'HR', label: 'HR' },
     { role: 'MANAGER', label: 'Manager' },
     { role: 'EMPLOYEE', label: 'Employee' },
   ];
@@ -255,7 +255,7 @@ export default function UserDirectory({ users: initialUsers, departments, manage
               <option value="ALL">All Roles</option>
               <option value="EMPLOYEE">Employee</option>
               {!isManager && <option value="MANAGER">Manager</option>}
-              {isCeo && <option value="ADMIN">HR</option>}
+              {isCeo && <option value="HR">HR</option>}
             </select>
           </div>
 
@@ -317,14 +317,14 @@ export default function UserDirectory({ users: initialUsers, departments, manage
                   <span
                     className={cn(
                       'inline-block px-2 py-0.5 rounded text-[10px] font-bold border',
-                      user.role === 'ADMIN'
+                      user.role === 'HR'
                         ? 'bg-purple-50 dark:bg-purple-950/20 text-purple-600 dark:text-purple-400 border-purple-100/50'
                         : user.role === 'MANAGER'
                         ? 'bg-blue-50 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400 border-blue-100/50'
                         : 'bg-indigo-50 dark:bg-indigo-950/20 text-indigo-600 dark:text-indigo-400 border-indigo-100/50'
                     )}
                   >
-                    {user.role === 'ADMIN' ? 'HR' : user.role === 'MANAGER' ? 'Manager' : 'Employee'}
+                    {user.role === 'HR' ? 'HR' : user.role === 'MANAGER' ? 'Manager' : 'Employee'}
                   </span>
                 </div>
 
@@ -435,7 +435,7 @@ export default function UserDirectory({ users: initialUsers, departments, manage
                   >
                     <option value="EMPLOYEE">Employee</option>
                     {!isManager && <option value="MANAGER">Manager</option>}
-                    {isCeo && <option value="ADMIN">HR</option>}
+                    {isCeo && <option value="HR">HR</option>}
                   </select>
                 </div>
 
@@ -555,7 +555,7 @@ export default function UserDirectory({ users: initialUsers, departments, manage
                   >
                     <option value="EMPLOYEE">Employee</option>
                     {!isManager && <option value="MANAGER">Manager</option>}
-                    {isCeo && <option value="ADMIN">HR</option>}
+                    {isCeo && <option value="HR">HR</option>}
                   </select>
                 </div>
 

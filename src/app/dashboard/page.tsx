@@ -5,7 +5,7 @@ import { prisma } from '@/lib/db';
 import { UserRole } from '@prisma/client';
 import EmployeeDashboard from '@/components/dashboard/employee-dashboard';
 import ManagerDashboard from '@/components/dashboard/manager-dashboard';
-import AdminDashboard from '@/components/dashboard/admin-dashboard';
+import HRDashboard from '@/components/dashboard/HR-dashboard';
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -31,8 +31,8 @@ export default async function DashboardPage() {
     take: 5,
   });
 
-  if (role === 'CEO' || role === 'ADMIN') {
-    // HR Admin / CEO Dashboard queries
+  if (role === 'CEO' || role === 'HR') {
+    // HR HR / CEO Dashboard queries
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -42,14 +42,14 @@ export default async function DashboardPage() {
     // Every query below is also scoped to the viewer's own company, so two
     // registered companies never see each other's headcount or requests.
     const reviewableRoles: UserRole[] =
-  role === 'ADMIN'
+  role === 'HR'
     ? [UserRole.MANAGER, UserRole.EMPLOYEE]
-    : [UserRole.MANAGER, UserRole.ADMIN];
+    : [UserRole.MANAGER, UserRole.HR];
 
 const activeEmployeeRoles: UserRole[] =
-  role === 'ADMIN'
+  role === 'HR'
     ? [UserRole.MANAGER, UserRole.EMPLOYEE]
-    : [UserRole.MANAGER, UserRole.ADMIN, UserRole.EMPLOYEE];
+    : [UserRole.MANAGER, UserRole.HR, UserRole.EMPLOYEE];
 
     const [activeEmployeesCount, activeRequestsCount, onLeaveTodayCount, leaveTypes] = await Promise.all([
       prisma.user.count({ where: { isActive: true, role: { in: activeEmployeeRoles }, companyId } }),
@@ -103,7 +103,7 @@ const activeEmployeeRoles: UserRole[] =
     });
 
     return (
-      <AdminDashboard
+      <HRDashboard
         role={role}
         userName={session.user.name || 'there'}
         stats={{

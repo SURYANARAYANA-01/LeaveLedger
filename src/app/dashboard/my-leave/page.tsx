@@ -4,8 +4,8 @@ import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import EmployeeDashboard from '@/components/dashboard/employee-dashboard';
 
-// Personal leave dashboard for Manager / HR (Admin) roles.
-// Shows the same "my leave" view employees see, since managers and admins
+// Personal leave dashboard for Manager / HR (HR) roles.
+// Shows the same "my leave" view employees see, since managers and HRs
 // also accrue and take leave themselves — separate from their team/approval
 // dashboard at /dashboard.
 export default async function MyLeavePage() {
@@ -18,9 +18,9 @@ export default async function MyLeavePage() {
   const userId = session.user.id;
   const role = session.user.role;
 
-  // Only MANAGER and ADMIN have a separate personal view here.
+  // Only MANAGER and HR have a separate personal view here.
   // EMPLOYEE already sees this at /dashboard, CEO doesn't request leave here.
-  if (role !== 'MANAGER' && role !== 'ADMIN') {
+  if (role !== 'MANAGER' && role !== 'HR') {
     redirect('/dashboard');
   }
 

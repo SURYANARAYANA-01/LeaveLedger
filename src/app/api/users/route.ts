@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
   try {
     const session = await auth();
     const creatorRole = session?.user?.role;
-    if (!session?.user || (creatorRole !== 'ADMIN' && creatorRole !== 'MANAGER' && creatorRole !== 'CEO')) {
+    if (!session?.user || (creatorRole !== 'HR' && creatorRole !== 'MANAGER' && creatorRole !== 'CEO')) {
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     }
 
@@ -23,12 +23,12 @@ export async function POST(req: NextRequest) {
     const { email, name, role: requestedRole, departmentId, managerId, phone } = parsed.data;
 
     // Never trust the payload's role — scope what each creator role may assign:
-    // Manager -> Employee only; HR (Admin) -> Manager or Employee (not HR);
+    // Manager -> Employee only; HR (HR) -> Manager or Employee (not HR);
     // CEO -> anything, including HR.
     let role = requestedRole;
     if (creatorRole === 'MANAGER') {
       role = 'EMPLOYEE';
-    } else if (creatorRole === 'ADMIN' && requestedRole === 'ADMIN') {
+    } else if (creatorRole === 'HR' && requestedRole === 'HR') {
       return NextResponse.json({ success: false, message: 'HR cannot create other HR accounts' }, { status: 403 });
     }
 
@@ -94,7 +94,7 @@ export async function PUT(req: NextRequest) {
   try {
     const session = await auth();
     const editorRole = session?.user?.role;
-    if (!session?.user || (editorRole !== 'ADMIN' && editorRole !== 'MANAGER' && editorRole !== 'CEO')) {
+    if (!session?.user || (editorRole !== 'HR' && editorRole !== 'MANAGER' && editorRole !== 'CEO')) {
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     }
 
@@ -122,7 +122,7 @@ export async function PUT(req: NextRequest) {
 
     // Scope who each editor role may touch, and what role they may assign:
     // Manager -> Employees only, can't change role away from Employee.
-    // HR (Admin) -> Managers and Employees (not other HR), can't promote to HR.
+    // HR (HR) -> Managers and Employees (not other HR), can't promote to HR.
     // CEO -> anyone, any role.
     let role = requestedRole;
     if (editorRole === 'MANAGER') {
@@ -130,11 +130,11 @@ export async function PUT(req: NextRequest) {
         return NextResponse.json({ success: false, message: 'Managers can only edit employees' }, { status: 403 });
       }
       role = 'EMPLOYEE';
-    } else if (editorRole === 'ADMIN') {
-      if (existing.role === 'ADMIN') {
+    } else if (editorRole === 'HR') {
+      if (existing.role === 'HR') {
         return NextResponse.json({ success: false, message: 'HR cannot edit other HR accounts' }, { status: 403 });
       }
-      if (requestedRole === 'ADMIN') {
+      if (requestedRole === 'HR') {
         return NextResponse.json({ success: false, message: 'HR cannot promote users to HR' }, { status: 403 });
       }
     }
@@ -173,7 +173,7 @@ export async function DELETE(req: NextRequest) {
   try {
     const session = await auth();
     const deleterRole = session?.user?.role;
-    if (!session?.user || (deleterRole !== 'ADMIN' && deleterRole !== 'MANAGER' && deleterRole !== 'CEO')) {
+    if (!session?.user || (deleterRole !== 'HR' && deleterRole !== 'MANAGER' && deleterRole !== 'CEO')) {
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     }
 
@@ -201,7 +201,7 @@ export async function DELETE(req: NextRequest) {
     if (deleterRole === 'MANAGER' && existing.role !== 'EMPLOYEE') {
       return NextResponse.json({ success: false, message: 'Managers can only delete employees' }, { status: 403 });
     }
-    if (deleterRole === 'ADMIN' && existing.role === 'ADMIN') {
+    if (deleterRole === 'HR' && existing.role === 'HR') {
       return NextResponse.json({ success: false, message: 'HR cannot delete other HR accounts' }, { status: 403 });
     }
 

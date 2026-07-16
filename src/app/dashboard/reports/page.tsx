@@ -7,8 +7,8 @@ import LeaveReports from '@/components/reports/leave-reports';
 export default async function ReportsPage() {
   const session = await auth();
 
-  // Protect route - Admin only
-  if (!session?.user || session.user.role !== 'ADMIN') {
+  // Protect route - HR only
+  if (!session?.user || session.user.role !== 'HR') {
     redirect('/dashboard');
   }
 

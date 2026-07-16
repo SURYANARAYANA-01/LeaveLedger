@@ -12,7 +12,7 @@ export default async function ApprovalsPage() {
   if (
     !session?.user ||
     (session.user.role !== 'MANAGER' &&
-      session.user.role !== 'ADMIN' &&
+      session.user.role !== 'HR' &&
       session.user.role !== 'CEO')
   ) {
     redirect('/dashboard');
@@ -25,12 +25,12 @@ export default async function ApprovalsPage() {
    * Approval scope (not just direct reports, but everyone that role level
    * is responsible for reviewing), grouped into separate sections:
    *   MANAGER → Employee requests only (single section)
-   *   ADMIN (HR) → Manager requests + Employee requests (two sections)
+   *   HR (HR) → Manager requests + Employee requests (two sections)
    *   CEO → Manager requests + HR requests (two sections)
    * In all cases, exclude the reviewer's own requests.
    */
   const scopedRoles: UserRole[] =
-    role === 'MANAGER' ? ['EMPLOYEE'] : role === 'ADMIN' ? ['MANAGER', 'EMPLOYEE'] : ['MANAGER', 'ADMIN'];
+    role === 'MANAGER' ? ['EMPLOYEE'] : role === 'HR' ? ['MANAGER', 'EMPLOYEE'] : ['MANAGER', 'HR'];
 
   const requests = await prisma.leaveRequest.findMany({
     where: {
@@ -50,7 +50,7 @@ export default async function ApprovalsPage() {
   });
 
   const roleLabel: Record<string, string> = {
-    ADMIN: 'HR',
+    HR: 'HR',
     MANAGER: 'Manager',
     EMPLOYEE: 'Employee',
   };

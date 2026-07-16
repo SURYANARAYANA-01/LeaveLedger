@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
 
     if (!user.inviteTokenExpiry || user.inviteTokenExpiry < new Date()) {
       return NextResponse.json(
-        { success: false, message: 'This invite link has expired. Ask your admin to resend it.' },
+        { success: false, message: 'This invite link has expired. Ask your HR to resend it.' },
         { status: 410 }
       );
     }

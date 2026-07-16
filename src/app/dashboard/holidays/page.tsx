@@ -14,7 +14,7 @@ export default async function HolidaysPage() {
     orderBy: { date: 'asc' },
   });
 
-  const isAdmin = session.user.role === 'ADMIN' || session.user.role === 'CEO';
+  const isHR = session.user.role === 'HR' || session.user.role === 'CEO';
 
   return (
     <div className="space-y-6">
@@ -25,7 +25,7 @@ export default async function HolidaysPage() {
         </p>
       </div>
 
-      <HolidayManager holidays={JSON.parse(JSON.stringify(holidays))} isAdmin={isAdmin} />
+      <HolidayManager holidays={JSON.parse(JSON.stringify(holidays))} isHR={isHR} />
     </div>
   );
 }

@@ -5,7 +5,7 @@
 Core entities and relationships (see `prisma/schema.prisma` for the full schema):
 
 - **Company** — root of multi-tenancy. Every `User` belongs to exactly one company.
-- **User** — has a `role` (`EMPLOYEE` / `MANAGER` / `ADMIN` / `CEO`), an optional `managerId` (self-relation forming the reporting chain), an optional `departmentId`, and belongs to a `Company`.
+- **User** — has a `role` (`EMPLOYEE` / `MANAGER` / `HR` / `CEO`), an optional `managerId` (self-relation forming the reporting chain), an optional `departmentId`, and belongs to a `Company`.
 - **LeaveRequest** — belongs to a `User`, references a `LeaveType`, has a `status` (`PENDING` / `APPROVED` / `REJECTED`) and a date range.
 - **LeaveBalance** — per-user, per-leave-type, per-year allocation/used/pending counters.
 - **Department**, **Holiday**, **LeaveType**, **Notification**, **CeoSchedule** — supporting entities. (Note: these are currently shared across all companies, not yet company-scoped — see "Known limitations" below.)
@@ -18,7 +18,7 @@ Core entities and relationships (see `prisma/schema.prisma` for the full schema)
 
 ## Role & permission matrix
 
-| Action | Employee | Manager | HR (Admin) | CEO |
+| Action | Employee | Manager | HR (HR) | CEO |
 | --- | --- | --- | --- | --- |
 | View own leave / apply for leave | ✅ | ✅ | ✅ | ✅ |
 | View User Directory | ❌ | Employees only | Manager + Employee | Everyone |

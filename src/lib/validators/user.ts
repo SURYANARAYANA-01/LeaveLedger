@@ -19,7 +19,7 @@ export type RegisterInput = z.infer<typeof registerSchema>;
 export const createUserSchema = z.object({
   email: z.string().email('Invalid email address'),
   name: z.string().min(2, 'Name must be at least 2 characters'),
-  role: z.enum(['EMPLOYEE', 'MANAGER', 'ADMIN', 'CEO']),
+  role: z.enum(['EMPLOYEE', 'MANAGER', 'HR', 'CEO']),
   departmentId: z.string().optional().nullable(),
   managerId: z.string().optional().nullable(),
   phone: z.string().optional().nullable(),
@@ -39,7 +39,7 @@ export const updateUserSchema = z.object({
   id: z.string(),
   name: z.string().min(2, 'Name must be at least 2 characters').optional(),
   email: z.string().email('Invalid email address').optional(),
-  role: z.enum(['EMPLOYEE', 'MANAGER', 'ADMIN', 'CEO']).optional(),
+  role: z.enum(['EMPLOYEE', 'MANAGER', 'HR', 'CEO']).optional(),
   departmentId: z.string().optional().nullable(),
   managerId: z.string().optional().nullable(),
   isActive: z.boolean().optional(),

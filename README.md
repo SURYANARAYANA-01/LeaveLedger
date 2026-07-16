@@ -47,7 +47,7 @@ All seeded accounts use the password `demo1234`:
 | Role | Email |
 | --- | --- |
 | CEO | ceo@leaveledger.com |
-| HR | admin@leaveledger.com |
+| HR | HR@leaveledger.com |
 | Manager | manager@leaveledger.com |
 | Employee | demo@leaveledger.com |
 
