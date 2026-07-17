@@ -13,7 +13,7 @@ export default function NotFound() {
           This page took a leave of absence.
         </p>
         <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">
-          The page you're looking for doesn't exist or may have moved.
+          The page you&apos;re looking for doesn&apos;t exist or may have moved.
         </p>
         <Link
           href="/dashboard"

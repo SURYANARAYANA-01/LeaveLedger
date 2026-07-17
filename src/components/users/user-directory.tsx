@@ -7,7 +7,6 @@ import { createUserSchema, CreateUserInput, updateUserSchema, UpdateUserInput } 
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import {
-  Users,
   Search,
   Filter,
   Plus,
@@ -69,7 +68,7 @@ export default function UserDirectory({ users: initialUsers, departments, manage
     return false;
   };
   const router = useRouter();
-  const [users, setUsers] = useState<UserType[]>(initialUsers);
+  const [users] = useState<UserType[]>(initialUsers);
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('ALL');
   const [deptFilter, setDeptFilter] = useState<string>('ALL');

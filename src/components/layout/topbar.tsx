@@ -33,7 +33,6 @@ interface TopbarProps {
 
 export default function Topbar({
   userName,
-  userRole,
   userAvatar,
   notifications: initialNotifications = [],
   onMarkRead,

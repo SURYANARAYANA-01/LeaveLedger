@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { formatDateRange, getStatusColor } from '@/lib/utils';
 import {
   Users,
-  ShieldAlert,
   CalendarCheck2,
   Clock,
   ArrowRight,

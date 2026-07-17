@@ -5,7 +5,7 @@ import { prisma } from '@/lib/db';
 import { UserRole } from '@prisma/client';
 import EmployeeDashboard from '@/components/dashboard/employee-dashboard';
 import ManagerDashboard from '@/components/dashboard/manager-dashboard';
-import HRDashboard from '@/components/dashboard/HR-dashboard';
+import AdminDashboard from '@/components/dashboard/admin-dashboard';
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -103,7 +103,7 @@ const activeEmployeeRoles: UserRole[] =
     });
 
     return (
-      <HRDashboard
+      <AdminDashboard
         role={role}
         userName={session.user.name || 'there'}
         stats={{

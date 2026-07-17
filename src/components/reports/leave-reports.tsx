@@ -11,21 +11,14 @@ import {
   PieChart,
   Pie,
   Cell,
-  Legend,
   LineChart,
   Line,
   CartesianGrid
 } from 'recharts';
 import {
-  FileSpreadsheet,
   Download,
-  Calendar,
   Layers,
-  Users,
-  CheckSquare,
-  Filter,
-  Sparkles,
-  Info
+  Filter
 } from 'lucide-react';
 import { cn, formatDate } from '@/lib/utils';
 

@@ -1,7 +1,7 @@
 import { auth } from '@/lib/auth';
 import { NextResponse } from 'next/server';
 
-export default auth((req) => {
+export const proxy = auth((req) => {
   const { nextUrl } = req;
   // A truthy req.auth only means a session cookie exists — it doesn't mean
   // the underlying user still exists in the database (see the session

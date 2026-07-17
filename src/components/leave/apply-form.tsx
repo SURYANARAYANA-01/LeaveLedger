@@ -6,8 +6,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { applyLeaveSchema, ApplyLeaveInput } from '@/lib/validators/leave';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
-import { CalendarIcon, Loader2, Info } from 'lucide-react';
-import { calculateBusinessDays, formatDate } from '@/lib/utils';
+
+import { Info, Loader2 } from 'lucide-react';
+import { calculateBusinessDays } from '@/lib/utils';
 
 interface LeaveType {
   id: string;
