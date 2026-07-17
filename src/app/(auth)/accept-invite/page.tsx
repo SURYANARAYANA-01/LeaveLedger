@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Lock, Loader2, CheckCircle2, KeyRound } from 'lucide-react';
 import { toast } from 'sonner';
+import { signOut } from 'next-auth/react';
 import Link from 'next/link';
 
 interface UserData {
@@ -21,6 +22,7 @@ export default function AcceptInvitePage() {
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
   const [userData, setUserData] = useState<UserData | null>(null);
+  const [signingOut, setSigningOut] = useState(false);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,6 +63,18 @@ export default function AcceptInvitePage() {
     }
   };
 
+  const handleGoToLogin = async () => {
+    setSigningOut(true);
+    try {
+      // Sign out to clear the session cookie
+      await signOut({ redirect: true, redirectUrl: '/login' });
+    } catch (error) {
+      console.error('Sign out error:', error);
+      // Fallback: redirect manually if signOut fails
+      window.location.href = '/login';
+    }
+  };
+
   if (done) {
     const roleLabel = userData?.role === 'HR' ? 'HR' : userData?.role === 'MANAGER' ? 'Manager' : userData?.role === 'CEO' ? 'CEO' : 'Employee';
     
@@ -95,12 +109,20 @@ export default function AcceptInvitePage() {
           <p className="text-sm text-slate-500 dark:text-slate-400">
             Click below to log in and access your {roleLabel.toLowerCase()} dashboard.
           </p>
-          <Link
-            href="/login"
-            className="inline-flex w-full items-center justify-center py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-lg shadow-lg shadow-indigo-600/20 transition-all"
+          <button
+            onClick={handleGoToLogin}
+            disabled={signingOut}
+            className="inline-flex w-full items-center justify-center py-3 bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-400 text-white font-medium rounded-lg shadow-lg shadow-indigo-600/20 transition-all disabled:cursor-not-allowed"
           >
-            Go to Sign In
-          </Link>
+            {signingOut ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                <span>Redirecting to Sign In...</span>
+              </>
+            ) : (
+              <span>Go to Sign In</span>
+            )}
+          </button>
         </div>
       </div>
     );
