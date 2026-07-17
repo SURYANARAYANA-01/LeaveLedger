@@ -21,7 +21,17 @@ export async function POST(req: NextRequest) {
 
     const { token, password } = parsed.data;
 
-    const user = await prisma.user.findUnique({ where: { inviteToken: token } });
+    // Fetch user with full profile to preserve role
+    const user = await prisma.user.findUnique({
+      where: { inviteToken: token },
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        name: true,
+        inviteTokenExpiry: true,
+      },
+    });
 
     if (!user) {
       return NextResponse.json(
@@ -39,7 +49,8 @@ export async function POST(req: NextRequest) {
 
     const passwordHash = await bcrypt.hash(password, 12);
 
-    await prisma.user.update({
+    // Update password and activation status - role remains unchanged
+    const updatedUser = await prisma.user.update({
       where: { id: user.id },
       data: {
         password: passwordHash,
@@ -47,9 +58,26 @@ export async function POST(req: NextRequest) {
         inviteToken: null,
         inviteTokenExpiry: null,
       },
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        name: true,
+      },
     });
 
-    return NextResponse.json({ success: true, message: 'Account activated. You can now sign in.' });
+    // Log for debugging - helps track role assignment
+    console.log(`✅ User ${updatedUser.email} (${updatedUser.name}) activated with role: ${updatedUser.role}`);
+
+    return NextResponse.json({
+      success: true,
+      message: 'Account activated. You can now sign in.',
+      user: {
+        email: updatedUser.email,
+        name: updatedUser.name,
+        role: updatedUser.role,
+      },
+    });
   } catch (error) {
     console.error('Accept invite error:', error);
     return NextResponse.json(
