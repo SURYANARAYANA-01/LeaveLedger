@@ -15,13 +15,40 @@ export default function LoginPage() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    const error = searchParams.get('error');
-    if (error === 'NoAccount') {
-      toast.error('No account found for that Google sign-in. Register your company first, or ask your HR to invite you.');
-    } else if (error === 'SessionExpired') {
-      toast.error('Your session has expired or your account is no longer active. Please sign in again.');
+  const error = searchParams.get('error');
+  if (!error) return;
+
+  const id = requestAnimationFrame(() => {
+    switch (error) {
+      case 'NoAccount':
+      case 'AccessDenied':
+        toast.error(
+          'No account was found for this Google email. Please register your company or ask your HR to create an account.'
+
+        );
+        break;
+
+      case 'SessionExpired':
+        toast.error(
+          'Your session has expired or your account is no longer active. Please sign in again.'
+        );
+        break;
+
+      case 'CredentialsSignin':
+        toast.error('Invalid email or password. Please try again.');
+        break;
+
+      default:
+        toast.error('Sign-in failed. Please try again.');
+        break;
     }
-  }, [searchParams]);
+
+    // Remove ?error=... from the URL without reloading the page
+    window.history.replaceState({}, '', '/login');
+  });
+
+  return () => cancelAnimationFrame(id);
+}, [searchParams]);
 
   const {
     register,
@@ -46,7 +73,7 @@ export default function LoginPage() {
       });
 
       if (result?.error) {
-        toast.error('Invalid credentials. Please try again.');
+        toast.error('Invalid email or password. Please try again.');
       } else {
         toast.success('Logged in successfully!');
         // Hard navigation (not router.push) is intentional here: it

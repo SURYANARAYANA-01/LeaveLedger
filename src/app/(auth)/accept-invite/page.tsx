@@ -5,7 +5,6 @@ import { useSearchParams } from 'next/navigation';
 import { Lock, Loader2, CheckCircle2, KeyRound } from 'lucide-react';
 import { toast } from 'sonner';
 import { signOut } from 'next-auth/react';
-import Link from 'next/link';
 
 interface UserData {
   email: string;
@@ -66,8 +65,11 @@ export default function AcceptInvitePage() {
   const handleGoToLogin = async () => {
     setSigningOut(true);
     try {
-      // Sign out to clear the session cookie
-      await signOut({ redirect: true, redirectUrl: '/login' });
+      // Sign out to clear the session cookie. Note: NextAuth v5 uses
+      // `redirectTo`, not `redirectUrl` (that was the v4 name) — passing
+      // the wrong key is silently ignored rather than erroring, which is
+      // why this previously appeared to "do nothing."
+      await signOut({ redirect: true, redirectTo: '/login' });
     } catch (error) {
       console.error('Sign out error:', error);
       // Fallback: redirect manually if signOut fails

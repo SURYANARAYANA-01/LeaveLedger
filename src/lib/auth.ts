@@ -58,7 +58,7 @@ export async function verifyGoogleHandoffToken(token: string) {
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   session: { strategy: 'jwt' },
-  pages: { signIn: '/login' },
+  pages: { signIn: '/login', error: "/login" },
   providers: [
     Credentials({
       credentials: {
@@ -134,9 +134,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
       if (isGoogleLogin) {
         // Login page's Google button must never silently create a new
-        // company — if there's no matching account, reject with a clear
-        // error instead of routing to company setup.
-        return `/login?error=NoAccount`;
+        // company. Returning `false` (rather than a custom redirect
+        // string) is the standard, guaranteed Auth.js pattern here — it
+        // reliably redirects to the configured sign-in page with
+        // ?error=AccessDenied appended, without depending on exactly how
+        // a custom relative-URL string gets resolved internally.
+        return false;
       }
 
       // Register page's Google button: no account with this email yet, so
